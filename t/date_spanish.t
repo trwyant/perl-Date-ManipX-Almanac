@@ -1,0 +1,94 @@
+package main;
+
+use 5.010;
+
+use strict;
+use warnings;
+
+use Astro::Coord::ECI;
+use Astro::Coord::ECI::Utils qw{ deg2rad };
+use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
+
+use lib qw{ inc };
+use My::Module::Test;
+
+BEGIN {
+    local $@ = undef;
+    use constant CLASS_VENUS	=> eval {
+	require Astro::Coord::ECI::VSOP87D::Venus;
+	'Astro::Coord::ECI::VSOP87D::Venus';
+    }
+}
+
+my $dmad = CLASS->new( [ qw{
+	ConfigFile t/data/white-house.config
+	} ], );
+
+$dmad->config(	# ConfigFile sets English
+    language	=> 'Spanish',
+);
+
+my $sky = $dmad->get_config( 'sky' );
+
+subtest q<Parse 'hoy a la salida del sol'> => sub {
+    my ( $string, $body, $event, $detail ) = $dmad->__parse_pre(
+	'hoy a la salida del sol' );
+    is $string, 'hoy ', q<String became 'hoy '>;
+    is $body, $sky->[0], q<Body is the Sun>;
+    is $event, 'horizon', q<Event is 'horizon'>;
+    is $detail, 1, q<Detail is 1>;
+};
+
+subtest q<Parse 'la puesta de la luna'> => sub {
+    my ( $string, $body, $event, $detail ) = $dmad->__parse_pre(
+	'la puesta de la luna' );
+    is $string, '00:00:00', q<String became '00:00:00'>;
+    is $body, $sky->[1], q<Body is the Moon>;
+    is $event, 'horizon', q<Event is 'horizon'>;
+    is $detail, 0, q<Detail is 0>;
+};
+
+is parsed_value( $dmad, 'la puesta del sol 2021-04-01' ), '2021040123:32:04',
+    q<Time of Sunset April 1 2021>;
+
+is parsed_value( $dmad, '2021-04-01 a la salida del sol' ), '2021040110:52:21',
+    q<Time of Sunrise April 1 2021>;
+
+is parsed_value( $dmad, '2021-04-01 la luna es el mas alto' ),
+    '2021040108:26:53',
+    q<Time of culmination of Moon April 1 2021>;
+
+=begin comment
+
+is parsed_value( $dmad, '2021-04-01 local noon' ), '2021040117:11:53',
+    q<Local noon April 1 2021>;
+
+=end comment
+
+=cut
+
+is parsed_value( $dmad, 'el crepusculo de la tarde 2021-04-01' ),
+    '2021040123:58:57',
+    q<End of twilight April 1 2021>;
+
+is parsed_value( $dmad, 'la luna nueva 2021-04-01' ), '2021041202:30:21',
+    q<First new moon on or after April 1 2021>;
+
+is parsed_value( $dmad, 'el solsticio del verano 2021' ), '2021062103:31:34',
+    q<Summer solstice 2021>;
+
+SKIP: {
+    CLASS_VENUS
+	or skip "@{[ CLASS_VENUS ]} not available";
+    $dmad->config( sky => CLASS_VENUS );
+    is parsed_value( $dmad, 'la salida del Venus 2021-04-01' ),
+	'2021040111:03:14',
+	q<Time of Venus rise April 1 2021>;
+}
+
+
+done_testing;
+
+1;
+
+# ex: set textwidth=72 :
