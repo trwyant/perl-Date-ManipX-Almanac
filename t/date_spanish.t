@@ -40,8 +40,6 @@ subtest q<Parse 'la puesta de la luna'> => sub {
     is $detail, 0, q<Detail is 0>;
 };
 
-=begin comment
-
 subtest q<Parse 'la puesta del arcturus'> => sub {
     NO_STAR
 	and skip_all NO_STAR;
@@ -52,10 +50,6 @@ subtest q<Parse 'la puesta del arcturus'> => sub {
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
 };
-
-=end comment
-
-=cut
 
 is parsed_value( $dmad, 'la puesta del sol 2021-04-01' ), '2021040123:32:04',
     q<Time of Sunset April 1 2021>;
@@ -86,8 +80,6 @@ is parsed_value( $dmad, 'la luna nueva 2021-04-01' ), '2021041202:30:21',
 is parsed_value( $dmad, 'el solsticio del verano 2021' ), '2021062103:31:34',
     q<Summer solstice 2021>;
 
-=begin comment
-
 SKIP: {
     NO_STAR
 	and skip NO_STAR;
@@ -95,10 +87,6 @@ SKIP: {
 	'2021040123:34:33',
 	q<Arcturus rises 2021-04-01>;
 }
-
-=end comment
-
-=cut
 
 SKIP: {
     NO_VENUS

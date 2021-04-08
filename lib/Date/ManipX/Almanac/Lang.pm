@@ -48,12 +48,29 @@ sub __new {
 
 =begin comment
 
+=begin comment
+
+=head2 __body_data
+
+ my $data = $self->__body_data();
+
+This method returns the table that drives L<__body_re()|/__body_re>. It
+B<must> be implemented by the subclass.
+
+The return is an array reference. Each element is a reference to an
+array as returned by L<__body_re()|/__body_re>, except that the first
+element is the name of the represented class.
+
+=end comment
+
+=cut
+
 =head2 __body_re
 
  my ( $body_re, $spec_re, $interp_spec ) =
    $self->__body_re( $body );
 
-Given an astronomical body, return one to four pieces of data:
+Given an astronomical body, return one to three pieces of data:
 
 =over
 
@@ -105,26 +122,36 @@ sub __body_re {
 	    and return @{ $_ }[ 1 .. $#$_ ];
     }
 
-    my $name = $self->__string_to_re( $body->get( 'name' ) );
+    my $name = $self->__body_re_from_name(
+	$self->__string_to_re( $body->get( 'name' ) ) );
     return qr/ $name /smxi;
 }
 
 =begin comment
 
-=head2 __body_data
+=head2 __body_re_from_name
 
- my $data = $self->__body_data();
+ my $re = $self->__body_re_from_name( $name );
 
-This method returns the table that drives L<__body_re()|/__body_re>. It
-B<must> be implemented by the subclass.
+This is a fallback for anything not covered in
+L<__body_data()|/__body_data> (e.g. stars). The argument is the name,
+which has already been processed by
+L<__string_to_re()|/__string_to_re()>. Despite the name of the method,
+the return is a string, not a C<Regexp> object. The return must not
+capture anything.
 
-The return is an array reference. Each element is a reference to an
-array as returned by L<__body_re()|/__body_re>, except that the first
-element is the name of the represented class.
+This class' implementation simply returns the argument, but it can be
+overridden to allow things like articles and prepositions. In langages
+that inflect by gender, the override will need to allow both genders.
 
 =end comment
 
 =cut
+
+sub __body_re_from_name {
+    my ( undef, $name ) = @_;
+    return $name;
+}
 
 =begin comment
 

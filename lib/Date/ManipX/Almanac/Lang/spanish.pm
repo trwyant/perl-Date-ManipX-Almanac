@@ -113,6 +113,11 @@ sub __body_data {
     ];
 }
 
+sub __body_re_from_name {
+    my ( undef, $name ) = @_;
+    return "(?: del | (?: de \\s* )? la | el )? \\s* $name";
+}
+
 # See the Date::ManipX::Almanac::Lang POD for __general_event_re
 #
 # Return a regular expression that matches any event that must be paired
