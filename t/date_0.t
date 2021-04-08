@@ -71,9 +71,9 @@ if ( NO_STAR ) {
 isa_ok $sky->[0], 'Astro::Coord::ECI::Sun';
 isa_ok $sky->[1], 'Astro::Coord::ECI::Moon';
 
-if ( NO_STAR ) {
-    skip NO_STAR, 2;
-} else {
+SKIP: {
+    NO_STAR
+	and skip NO_STAR, 2;
     isa_ok $sky->[2], 'Astro::Coord::ECI::Star';
     is $sky->[2]->get( 'name' ), 'Arcturus',
 	'Third astronomical body is Arcturus';

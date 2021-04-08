@@ -3,27 +3,14 @@ package My::Module::Build;
 use strict;
 use warnings;
 
+use 5.010;
+
 use Module::Build;
 our @ISA = qw{ Module::Build };
 
+use My::Module::Meta;
+
 use Carp;
-
-
-sub ACTION_authortest {
-    my ( $self, @args ) = @_;
-
-    local $ENV{AUTHOR_TESTING} = 1;
-
-    -e 'META.json'
-	or $self->depends_on( 'distmeta' );
-
-    $self->depends_on( 'build' );
-
-    $self->test_files( qw{ t xt/author } );
-    $self->depends_on( 'test' );
-
-    return;
-}
 
 sub ACTION_test {
     my ( $self, @args ) = @_;
@@ -34,6 +21,106 @@ sub ACTION_test {
     $self->depends_on( 'build' );
 
     return $self->SUPER::ACTION_test( @args );
+}
+
+sub ACTION_authortest {
+##  my ( $self, @args ) = @_;	# Arguments unused
+    my ( $self ) = @_;
+
+    $self->depends_on( qw{ functional_test optionals_test structural_test } );
+
+    return;
+}
+
+sub ACTION_functional_test {
+    my ( $self ) = @_;
+
+    local $ENV{AUTHOR_TESTING} = 1;
+
+    $self->my_depends_on();
+
+    print <<'EOD';
+
+functional_test
+AUTHOR_TESTING=1
+EOD
+
+    # Not depends_on(), because that is idempotent. But we really do
+    # want to run 'test' more than once if we do more than one of the
+    # *_test actions.
+    $self->dispatch( 'test' );
+
+    return;
+}
+
+sub ACTION_optionals_test {
+    my ( $self ) = @_;
+
+    state $meta = My::Module::Meta->new();
+    my $optionals = join ',', $meta->optionals_for_testing();
+    local $ENV{AUTHOR_TESTING} = 1;
+    local $ENV{PERL5OPT} = "-MTest::Without::Module=$optionals";
+
+    $self->my_depends_on();
+
+    print <<"EOD";
+
+optionals_test
+AUTHOR_TESTING=1
+PERL5OPT=-MTest::Without::Module=$optionals
+EOD
+
+    # Not depends_on(), because that is idempotent. But we really do
+    # want to run 'test' more than once if we do more than one of the
+    # *_test actions.
+    $self->dispatch( 'test' );
+
+    return;
+}
+
+sub ACTION_structural_test {
+    my ( $self ) = @_;
+
+    local $ENV{AUTHOR_TESTING} = 1;
+
+    $self->my_depends_on();
+
+    print <<'EOD';
+
+structural_test
+AUTHOR_TESTING=1
+EOD
+
+    my $structural_test_files = 'xt/author';
+    if ( $self->can( 'args' ) ) {
+	my @arg = $self->args();
+	for ( my $inx = 0; $inx < $#arg; $inx += 2 ) {
+	    $arg[$inx] =~ m/ \A structural[-_]test[-_]files \z /smx
+		or next;
+	    $structural_test_files = $arg[ $inx + 1 ];
+	    last;
+	}
+    }
+    $self->test_files( $structural_test_files );
+
+    # Not depends_on(), because that is idempotent. But we really do
+    # want to run 'test' more than once if we do more than one of the
+    # *_test actions.
+    $self->dispatch( 'test' );
+
+    return;
+}
+
+sub my_depends_on {
+    my ( $self ) = @_;
+    my @depends_on;
+    -d 'blib'
+	or push @depends_on, 'build';
+    -e 'META.json'
+	or push @depends_on, 'distmeta';
+    @depends_on
+	and $self->depends_on( @depends_on );
+    return;
 }
 
 1;

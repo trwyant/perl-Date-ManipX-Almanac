@@ -95,6 +95,13 @@ sub no_index {
     ];
 }
 
+sub optionals_for_testing {
+    return qw{
+    Astro::Coord::ECI::Star
+    Astro::Coord::ECI:VSOP87D::Venus
+    };
+}
+
 sub provides {
     -d 'lib'
 	or return;
@@ -249,6 +256,11 @@ on.
 
 This method returns the names of things which are not to be indexed
 by CPAN.
+
+=head2 optionals_for_testing
+
+This method returns the names of optional modules used (if available) in
+testing.
 
 =head2 provides
 
