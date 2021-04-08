@@ -11,7 +11,10 @@ eval {
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
 my $tpm = Test::Prereq::Meta->new(
-    accept	=> [ qw{ Astro::Coord::ECI::VSOP87D::Venus } ],
+    accept	=> [ qw{
+	Astro::Coord::ECI::Star
+	Astro::Coord::ECI::VSOP87D::Venus
+	} ],
 );
 
 $tpm->all_prereq_ok();

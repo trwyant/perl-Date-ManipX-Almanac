@@ -8,7 +8,7 @@ use warnings;
 use parent qw{ Date::Manip::Date };
 
 use Astro::Coord::ECI;
-use Astro::Coord::ECI::Utils;
+use Astro::Coord::ECI::Utils qw{ TWOPI };
 use Carp;
 use Module::Load ();
 use Scalar::Util ();
@@ -203,14 +203,36 @@ sub _config_var_is_eci {
     return $val;
 }
 
+# This ought to be in Astro::Coord::ECI::Utils
+sub _hms2rad {
+    my ( $hms ) = @_;
+    my ( $hr, $min, $sec ) = split qr < : >smx, $hms;
+    $_ ||= 0 for $sec, $min, $hr;
+    return TWOPI * ( ( ( $sec / 60 ) + $min ) / 60 + $hr ) / 24;
+}
+
 sub _config_var_is_eci_class {
     my ( $self, $name, $val ) = @_;
     my $rslt;
     $rslt = $self->_config_var_is_eci( $name, $val )
 	and return $rslt;
     if ( ! ref $val ) {
-	Module::Load::load( $val );
-	my $obj = $val->new();
+	my ( $class, @arg ) = split qr/ \s+ /smx, $val;
+	Module::Load::load( $class );
+	state $factory = {
+	    'Astro::Coord::ECI::Star'	=> sub {
+		my ( $name, $ra, $decl, $rng ) = @_;
+		return Astro::Coord::ECI::Star->new(
+		    name	=> $name,
+		)->position(
+		    _hms2rad( $ra ),
+		    Astro::Coord::ECI::Utils::deg2rad( $decl ),
+		    $rng,
+		);
+	    },
+	};
+	my $code = $factory->{$class} || sub { $class->new() };
+	my $obj = $code->( @arg );
 	if ( $rslt = $self->_config_var_is_eci( $name, $obj ) ) {
 	    return $rslt;
 	}
@@ -537,10 +559,14 @@ the almanac. It can be specified more than once, so
 
 specifies that both Sun and Moon be included.
 
-It is a restriction that only classes that can fully initialize
-themselves will work. There is no way to specify
-C<Astro::Coord::ECI::Star>, because there is no way to specify which
-star.
+In general, only classes that can fully initialize themselves will work
+here. There is special-case code for
+L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star>, though, that lets
+you specify the name of the star, its right ascension (in
+hours:minutes:seconds) and declination (in decimal degrees), and
+optionally its distance in parsecs. So you can configure (for example)
+
+ sky = Astro::Coord::ECI::Star Arcturus 14:15:39.67207 +19.182409
 
 =back
 

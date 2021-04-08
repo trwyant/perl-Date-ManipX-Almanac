@@ -9,6 +9,9 @@ use Astro::Coord::ECI;
 use Astro::Coord::ECI::Utils qw{ deg2rad };
 use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
 
+use lib qw{ inc };
+use My::Module::Test;
+
 use constant METERS_PER_KILOMETER	=> 1000;
 
 my $loc = Astro::Coord::ECI->new(
@@ -57,12 +60,24 @@ is $dmad->get_config( 'location' ), undef, 'Cleared the location';
 ok !$dmad->config( sky => [] ), 'Attempt to clear the sky succeeded';
 is scalar @{ $dmad->get_config( 'sky' ) }, 0, 'Cleared the sky';
 
-ok ! $dmad->config( ConfigFile => 't/data/white-house.config' ),
-    q{config( ConfigFile => 't/data/white-house.config' )};
+ok ! $dmad->config( ConfigFile => TEST_CONFIG_FILE ),
+    qq{config( ConfigFile => '@{[ TEST_CONFIG_FILE ]}' )};
 $sky = $dmad->get_config( 'sky' );
-is scalar @{ $sky }, 2, 'Sky contains two bodies';
+if ( NO_STAR ) {
+    is scalar @{ $sky }, 2, 'Sky contains two bodies';
+} else {
+    is scalar @{ $sky }, 3, 'Sky contains three bodies';
+}
 isa_ok $sky->[0], 'Astro::Coord::ECI::Sun';
 isa_ok $sky->[1], 'Astro::Coord::ECI::Moon';
+
+if ( NO_STAR ) {
+    skip NO_STAR, 2;
+} else {
+    isa_ok $sky->[2], 'Astro::Coord::ECI::Star';
+    is $sky->[2]->get( 'name' ), 'Arcturus',
+	'Third astronomical body is Arcturus';
+}
 
 done_testing;
 

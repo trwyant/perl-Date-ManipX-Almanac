@@ -12,12 +12,13 @@ lib/Date/ManipX/Almanac/Lang/english.pm
 LICENSES/Artistic
 LICENSES/Copying
 Makefile.PL
-MANIFEST			This list of files
+MANIFEST
 META.json
 META.yml
 README
 t/basic.t
 t/data/white-house.config
+t/data/white-house-with-star.config
 t/date_0.t
 t/date_english.t
 xt/author/changes.t

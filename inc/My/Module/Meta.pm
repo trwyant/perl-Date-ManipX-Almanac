@@ -31,7 +31,7 @@ sub author {
 
 sub build_requires {
     return +{
-	'Test2::V0'	=> 0,
+	'Test2::V0'			=> 0,
 	'Test2::Plugin::BailOnFail'	=> 0,
 	'Test2::Tools::LoadModule'	=> 0,
     };
@@ -112,6 +112,8 @@ sub requires {
 ##  }
     return +{
 	'Astro::Coord::ECI'		=> 0,
+	'Astro::Coord::ECI::Moon'	=> 0,
+	'Astro::Coord::ECI::Sun'	=> 0,
 	'Astro::Coord::ECI::Utils'	=> 0,
 	'Carp'				=> 0,
 	'Date::Manip::Date'		=> 6,

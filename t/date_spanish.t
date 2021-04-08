@@ -6,23 +6,15 @@ use strict;
 use warnings;
 
 use Astro::Coord::ECI;
+use Astro::Coord::ECI::Moon;
+use Astro::Coord::ECI::Sun;
 use Astro::Coord::ECI::Utils qw{ deg2rad };
 use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
 
 use lib qw{ inc };
 use My::Module::Test;
 
-BEGIN {
-    local $@ = undef;
-    use constant CLASS_VENUS	=> eval {
-	require Astro::Coord::ECI::VSOP87D::Venus;
-	'Astro::Coord::ECI::VSOP87D::Venus';
-    }
-}
-
-my $dmad = CLASS->new( [ qw{
-	ConfigFile t/data/white-house.config
-	} ], );
+my $dmad = CLASS->new( [ ConfigFile => TEST_CONFIG_FILE ] );
 
 $dmad->config(	# ConfigFile sets English
     language	=> 'Spanish',
@@ -47,6 +39,23 @@ subtest q<Parse 'la puesta de la luna'> => sub {
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
 };
+
+=begin comment
+
+subtest q<Parse 'la puesta del arcturus'> => sub {
+    NO_STAR
+	and skip_all NO_STAR;
+    my ( $string, $body, $event, $detail ) =
+	$dmad->__parse_pre( 'la puesta del arcturus' );
+    is $string, '00:00:00', q<String became '00:00:00'>;
+    is $body, $sky->[2], q<Body is Arcturus>;
+    is $event, 'horizon', q<Event is 'horizon'>;
+    is $detail, 0, q<Detail is 0>;
+};
+
+=end comment
+
+=cut
 
 is parsed_value( $dmad, 'la puesta del sol 2021-04-01' ), '2021040123:32:04',
     q<Time of Sunset April 1 2021>;
@@ -77,9 +86,23 @@ is parsed_value( $dmad, 'la luna nueva 2021-04-01' ), '2021041202:30:21',
 is parsed_value( $dmad, 'el solsticio del verano 2021' ), '2021062103:31:34',
     q<Summer solstice 2021>;
 
+=begin comment
+
 SKIP: {
-    CLASS_VENUS
-	or skip "@{[ CLASS_VENUS ]} not available";
+    NO_STAR
+	and skip NO_STAR;
+    is parsed_value( $dmad, 'la salida del Arcturus 2021-04-01' ),
+	'2021040123:34:33',
+	q<Arcturus rises 2021-04-01>;
+}
+
+=end comment
+
+=cut
+
+SKIP: {
+    NO_VENUS
+	and skip NO_VENUS;
     $dmad->config( sky => CLASS_VENUS );
     is parsed_value( $dmad, 'la salida del Venus 2021-04-01' ),
 	'2021040111:03:14',

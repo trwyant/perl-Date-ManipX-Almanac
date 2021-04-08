@@ -12,9 +12,34 @@ our $VERSION = '0.000_001';
 use Exporter qw{ import };
 
 our @EXPORT_OK = qw{
+    CLASS_VENUS
+    NO_STAR
+    NO_VENUS
+    TEST_CONFIG_FILE
     parsed_value
 };
 our @EXPORT = @EXPORT_OK;
+
+use constant CLASS_VENUS	=> 'Astro::Coord::ECI::VSOP87D::Venus';
+
+BEGIN {
+    local $@ = undef;
+
+    use constant NO_STAR	=> eval {
+	require Astro::Coord::ECI::Star;
+	1;
+    } ? '' : 'Astro::Coord::ECI::Star not available';
+
+    use constant NO_VENUS	=> eval {
+	require Astro::Coord::ECI::VSOP87D::Venus;
+	1;
+    } ? '' : 'Astro::Coord::ECI::VSOP87D::Venus not available';
+
+}
+
+use constant TEST_CONFIG_FILE => NO_STAR ?
+    't/data/white-house.config' :
+    't/data/white-house-with-star.config';
 
 sub parsed_value {
     my ( $obj, $string ) = @_;
@@ -49,9 +74,9 @@ L<Date::ManipX::Almanac|Date::ManipX::Almanac>. It is private to the
 C<Date-ManipX-Almanac> distribution, and subject to change without
 notice. Documentation is for the benefit of the author.
 
-All subroutines are exported by default, unless otherwise documented.
-
 =head1 SUBROUTINES
+
+All subroutines are exported by default, unless otherwise documented.
 
 =head2 parsed_value
 
@@ -62,6 +87,32 @@ This subroutine takes as its arguments a
 L<Date::Manip::Almanac::Date|Date::Manip::Almanac::Date> object and a
 string for it to parse. If the parse succeeds, it returns the results of
 C<< $dmad->value( 'gmt' ) >>. If it fails, it returns C<< $dmad->err() >>.
+
+=head1 MANIFEST CONSTANTS
+
+All manifest constants are exported unless otherwise documented.
+
+=head2 CLASS_VENUS
+
+This convenience constant is C<'Astro::Coord::ECI::Venus'>.
+
+=head2 NO_STAR
+
+This manifest constant is false if
+L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star> can be loaded. If
+not, it is true, and is in fact an appropriate skip message.
+
+=head2 NO_VENUS
+
+This manifest constant is false if
+L<Astro::Coord::ECI::Venus|Astro::Coord::ECI::Venus> can be loaded. If
+not, it is true, and is in fact an appropriate skip message.
+
+=head2 TEST_CONFIG_FILE
+
+This manifest constant is the name of the configuration file to be
+loaded for testing. B<Note> that it depends on the value of
+L<HAVE_STAR|/HAVE_STAR>.
 
 =head1 SEE ALSO
 
