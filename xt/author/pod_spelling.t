@@ -34,6 +34,7 @@ ano
 año
 ConfigFile
 geolocation
+mediodia
 merchantability
 si
 sí

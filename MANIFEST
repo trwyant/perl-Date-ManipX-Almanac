@@ -21,6 +21,7 @@ t/data/white-house.config
 t/data/white-house-with-star.config
 t/date_0.t
 t/date_english.t
+xt/author/basic.t
 xt/author/changes.t
 xt/author/critic.t
 xt/author/executable.t

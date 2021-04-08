@@ -24,7 +24,9 @@ sub __body_data {
 	    qr/
 		(?: a \s* )? (?: el \s* )?  (?<specific> crepusculo ) \s*
 		    (?: de \s* )? (?: la \s* )? (?<detail> manana | tarde ) |
-		(?<specific> local ) \s* (?<detail> noon | midnight ) |
+		(?: al? \s* )? (?: (?: el | la ) \s* )?
+		    (?<detail> mediodia | medianoche ) \s*
+		    (?<specific> local ) |
 		(?: el \s* )? (?<specific> equinoccio ) \s* (?:
 		    (?: de \s* )? (?: la \s* )? (?<detail> primavera ) |
 		    (?: del? \s* )? (?<detail> otono | marzo | sep?tiembre ) ) |
@@ -61,8 +63,8 @@ sub __body_data {
 		    },
 		],
 		local		=> [ meridian => {
-			noon		=> 1,
-			midnight	=> 0,
+			mediodia	=> 1,
+			medianoche	=> 0,
 		    },
 		],
 		crepusculo	=> [ twilight => {
@@ -321,16 +323,19 @@ The words C<'a'>, C<'el'>, C<'la'>, and C<'de'> are optional.
 
 =item noon
 
- local noon
- local midnight
+ al mediodia local
+ el mediodia local
+ la medianoche local
+ a la medianoche local
 
-This implies the Sun. The C<'local noon'> specification is equivalent to
-C<'sun culminates'>.
+This implies the Sun. The C<'mediodia local'> specification is
+equivalent to C<'sun culminates'>.
 
-I do not have a translation for these. Obviously the words translate,
-but I have no idea whether the literal translation of the English phrase
-means the same thing in Spanish -- it might mean, say, "noon in this
-time zone."
+The words C<'a'>, C<'al'>, C<'el'> and C<'la'> are optional.
+
+I have simply assumed that the literal translation of the English
+phrases mean the same thing in Spanish, though "mediodia local" might
+mean, for instance, "noon in this time zone."
 
 =back
 

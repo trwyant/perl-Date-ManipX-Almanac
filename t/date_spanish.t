@@ -61,14 +61,8 @@ is parsed_value( $dmad, '2021-04-01 la luna es el mas alto' ),
     '2021040108:26:53',
     q<Time of culmination of Moon April 1 2021>;
 
-=begin comment
-
-is parsed_value( $dmad, '2021-04-01 local noon' ), '2021040117:11:53',
+is parsed_value( $dmad, '2021-04-01 a la mediodia local' ), '2021040117:11:53',
     q<Local noon April 1 2021>;
-
-=end comment
-
-=cut
 
 is parsed_value( $dmad, 'el crepusculo de la tarde 2021-04-01' ),
     '2021040123:58:57',

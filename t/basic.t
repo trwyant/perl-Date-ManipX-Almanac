@@ -11,6 +11,12 @@ load_module_ok 'Date::ManipX::Almanac::Lang';
 
 load_module_ok 'Date::ManipX::Almanac::Lang::english';
 
+SKIP: {
+    $ENV{AUTHOR_TESTING}
+	or skip 'Date::ManipX::Almanac::Lang::spanish is unpublished', 1;
+    load_module_ok 'Date::ManipX::Almanac::Lang::spanish';
+}
+
 load_module_ok 'Date::ManipX::Almanac::Date';
 
 {

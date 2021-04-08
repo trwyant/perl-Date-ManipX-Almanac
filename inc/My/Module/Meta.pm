@@ -98,7 +98,7 @@ sub no_index {
 sub optionals_for_testing {
     return qw{
     Astro::Coord::ECI::Star
-    Astro::Coord::ECI:VSOP87D::Venus
+    Astro::Coord::ECI::VSOP87D::Venus
     };
 }
 
