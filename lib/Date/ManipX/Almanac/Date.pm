@@ -115,34 +115,24 @@ sub parse_time {
 }
 
 sub _config_almanac_configfile {
-    my ( $self, $name, $val ) = @_;
+    # my ( $self, $name, $val ) = @_;
+    my ( $self, undef, $val ) = @_;
     my $rslt;
     my @almanac;
 
-    # NOTE encapsulation violation because I am messing with and trying
-    # to outfox Date::Manip::TZ_Base's internals.
-    my $class = ref $self;
-    eval {
-	bless $self, 'Date::Manip::Base';	# Trying to outfox
-	local $self->{data}{sections}{almanac} = undef;	# Messing with
-
-	$rslt = $self->SUPER::config( $name, $val )
-	    or @almanac = @{ $self->{data}{sections}{almanac} };
-	1;
-    } or do {
-	bless $self, $class;
-	die;	# Re-raise exception.
-    };
-
-    bless $self, $class;
-
-    $rslt
-	and return $rslt;
-
-    my @sky;
+    {
+	my $tz = $self->tz();
+	my $base = $tz->base();
+	# NOTE encapsulation violation: changing someone else's data, to
+	# suppress the 'unknown section created' warning.
+	local $base->{data}{sections}{almanac} = undef;
+	# NOTE encapsulation violation: calling private method
+	$tz->_config_file( $val );
+	@almanac = @{ delete $base->{data}{sections}{almanac} };
+    }
 
     my %config = (
-	sky	=> \@sky,
+	sky	=> \my @sky,
     );
 
     while ( @almanac ) {
