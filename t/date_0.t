@@ -79,6 +79,17 @@ SKIP: {
 	'Third astronomical body is Arcturus';
 }
 
+{
+    my $dmad2 = $dmad->new();
+    ok $dmad2, 'Instantiate new object from old';
+    isa_ok $dmad2, ref $dmad;
+    my $loc2 = $dmad2->get_config( 'location' );
+    isa_ok $loc2, ref $loc;
+    is [ $loc2->geodetic() ], [ $loc->geodetic() ], 'Correct location';
+    my $sky2 = $dmad2->get_config( 'sky' );
+    isa_ok $sky2->[$_], ref $sky->[$_] for 0 .. $#$sky;
+}
+
 done_testing;
 
 1;

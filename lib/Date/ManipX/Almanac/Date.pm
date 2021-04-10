@@ -25,15 +25,28 @@ sub new {
     REF_ARRAY eq ref $args[-1]
 	and @config = @{ pop @args };
 
-    # NOTE encapsulation violation because I am trying to outfox
-    # Date::Manip::Date's internals.
-    # TODO figure out how to accommodate instantiating from an old
-    # object.
-    ( my $dm_class = $class ) =~ s/ ::Manip \K X::Almanac \b //smx;
-    my $self = $dm_class->new( @args );
-    bless $self, $class;
+    my ( $self, $from );
+    if ( ref $class ) {
+	# NOTE that Date::Manip::Date's new() method seems to be
+	# well-behaved (for my purposes) when the invocant is another
+	# object.
+	$self = $class->SUPER::new( @args );
+	$from = $class;
+    } else {
+	# NOTE logical encapsulation violation: Date::Manip::Date's
+	# new() method contains logic based on the class of the
+	# invocant, and this logic takes an undesirable branch if I just
+	# do $class->new(). So though this implementation does not reach
+	# into Date::Manip::Date, it is chosen based on knowledge of
+	# what goes on inside the black box.
 
-    $self->_init_almanac();
+	# We rely on _init_almanac() to Do The Right Thing.
+	$from = $args[0];	# We rely on _init_almanac to 
+	$self = Date::Manip::Date->new( @args );
+	bless $self, $class;
+    }
+
+    $self->_init_almanac( $from );
     @config
 	and $self->config( @config );
     $self->get_config( 'sky' )
@@ -307,14 +320,24 @@ sub _get_my_attr {
 }
 
 sub _init_almanac {
-    my ( $self ) = @_;
-    $self->_init_almanac_language( 1 );
-    if ( my $lang = $self->get_config( 'language' ) ) {
-	$self->_config_almanac_var_language( language => $lang );
+    my ( $self, $from ) = @_;
+    if ( Scalar::Util::blessed( $from ) && $from->isa( __PACKAGE__ ) ) {
+	state $cfg_var = [ qw{ language location sky } ];
+	my %cfg;
+	@cfg{ @{ $cfg_var } } = $from->get_config( @{ $cfg_var } );
+	# We clone because these objects have state.
+	# TODO this requires at least 0.118_01.
+	@{ $cfg{sky} } = map { $_->clone() } @{ $cfg{sky} };
+	$self->config( %cfg );
+    } else {
+	$self->_init_almanac_language( 1 );
+	if ( my $lang = $self->get_config( 'language' ) ) {
+	    $self->_config_almanac_var_language( language => $lang );
+	}
+	my $attr = $self->_get_my_attr();
+	$attr->{config}{location} = undef;
+	$attr->{config}{sky} = undef;
     }
-    my $attr = $self->_get_my_attr();
-    $attr->{config}{location} = undef;
-    $attr->{config}{sky} = undef;
     return;
 }
 
