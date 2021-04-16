@@ -5,8 +5,8 @@ use 5.010;
 use strict;
 use warnings;
 
-use Astro::Coord::ECI;
-use Astro::Coord::ECI::Utils qw{ deg2rad };
+use Astro::Coord::ECI 0.119;
+use Astro::Coord::ECI::Utils 0.119 qw{ deg2rad };
 use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
 
 use lib qw{ inc };

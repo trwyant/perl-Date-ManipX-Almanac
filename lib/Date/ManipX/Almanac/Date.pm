@@ -7,8 +7,8 @@ use warnings;
 
 use parent qw{ Date::Manip::Date };
 
-use Astro::Coord::ECI;
-use Astro::Coord::ECI::Utils qw{ TWOPI };
+use Astro::Coord::ECI 0.119;	# For clone() to work.
+use Astro::Coord::ECI::Utils 0.119 qw{ TWOPI };
 use Carp;
 use Module::Load ();
 use Scalar::Util ();

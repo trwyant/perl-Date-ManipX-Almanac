@@ -118,10 +118,10 @@ sub requires {
 ##  if ( ! $self->distribution() ) {
 ##  }
     return +{
-	'Astro::Coord::ECI'		=> 0,
-	'Astro::Coord::ECI::Moon'	=> 0,
-	'Astro::Coord::ECI::Sun'	=> 0,
-	'Astro::Coord::ECI::Utils'	=> 0,
+	'Astro::Coord::ECI'		=> 0.119,	# For clone() to work
+	'Astro::Coord::ECI::Moon'	=> 0.119,	# For clone() to work
+	'Astro::Coord::ECI::Sun'	=> 0.119,	# For clone() to work
+	'Astro::Coord::ECI::Utils'	=> 0.119,	# For clone() to work
 	'Carp'				=> 0,
 	'Date::Manip::Date'		=> 6,
 	'Module::Load'			=> 0,
