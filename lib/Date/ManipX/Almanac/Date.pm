@@ -119,12 +119,10 @@ sub _config_almanac_configfile {
     my ( $self, undef, $val ) = @_;
     my $rslt;
     my @almanac;
-
     {
 	my $tz = $self->tz();
 	my $base = $tz->base();
-	# NOTE encapsulation violation: changing someone else's data, to
-	# suppress the 'unknown section created' warning.
+	# NOTE encapsulation violation
 	local $base->{data}{sections}{almanac} = undef;
 	$tz->config( configfile => $val );
 	@almanac = @{ $base->{data}{sections}{almanac} || [] };
@@ -300,9 +298,10 @@ sub _config_almanac_var_sky {
     return;
 }
 
-# NOTE encapsulation violation because I am putting things in a hash
-# that does not belong to me. I suppose I could get around this by
-# implementing my attributes as an inside-out object.
+# NOTE encapsulation violation.
+# I suppose I could get around this by implementing my attributes as an
+# inside-out object, or implementing the Date::Manip functionality as
+# "has-a" rather than "is-a".
 sub _get_my_attr {
     my ( $self ) = @_;
     return ( $self->{ +__PACKAGE__ } ||= {} );
