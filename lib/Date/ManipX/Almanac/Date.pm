@@ -126,9 +126,8 @@ sub _config_almanac_configfile {
 	# NOTE encapsulation violation: changing someone else's data, to
 	# suppress the 'unknown section created' warning.
 	local $base->{data}{sections}{almanac} = undef;
-	# NOTE encapsulation violation: calling private method
-	$tz->_config_file( $val );
-	@almanac = @{ delete $base->{data}{sections}{almanac} };
+	$tz->config( configfile => $val );
+	@almanac = @{ $base->{data}{sections}{almanac} || [] };
     }
 
     my %config = (
