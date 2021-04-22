@@ -166,7 +166,7 @@ The user does not directly interface with this module.
 
 =head1 DESCRIPTION
 
-This module provides English-language support for parsing almanac
+This module provides Spanish-language support for parsing almanac
 events.
 
 B<Note> that the input normalization described in the
@@ -183,7 +183,8 @@ B<Caveat:> this module has not been reviewed by someone who is actually
 good at Spanish, and will not be actually distributed until that
 happens. I just hacked it together to try to ensure the code would work
 on a language which is more strongly inflected than English (i.e. most
-of them).
+of them). When in doubt (frequently) I have used The Collins Spanish
+Dictionary.
 
 =head1 ASTRONOMICAL BODIES
 
