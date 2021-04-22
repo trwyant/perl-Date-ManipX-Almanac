@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use Astro::Coord::ECI 0.119;
-use Astro::Coord::ECI::Utils 0.119 qw{ deg2rad };
+use Astro::Coord::ECI::Utils 0.119 qw{ deg2rad rad2deg };
 use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
 
 use lib qw{ inc };
@@ -33,7 +33,7 @@ foreach my $station (
 	name		=> 'White House',
     },
 ) {
-    note 'Configure with ', ref $station;
+    note 'Configure location with ', ref $station;
     $dmad->config( location => $station );
 
     my $got_loc = $dmad->get_config( 'location' );
@@ -89,6 +89,15 @@ SKIP: {
     my $sky2 = $dmad2->get_config( 'sky' );
     isa_ok $sky2->[$_], ref $sky->[$_] for 0 .. $#$sky;
 }
+
+is $dmad->get_config( 'twilight' ), undef, 'Default twilight is undef';
+$dmad->config( twilight => 'civil' );
+is $dmad->get_config( 'twilight' ), 'civil', q<Set twilight to 'civil'>;
+# DANGER WILL ROBINSON!
+# Encapsulation violation. This is NOT part of the public interface, and
+# may be changed without warning.
+is rad2deg( $dmad->_get_my_attr()->{config}{_twilight} ), -6,
+    q<Set correct twilight in radians>;
 
 done_testing;
 

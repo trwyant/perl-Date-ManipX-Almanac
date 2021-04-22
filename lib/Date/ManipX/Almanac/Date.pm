@@ -69,6 +69,7 @@ sub config {
 	    language	=> \&_config_almanac_var_language,
 	    location	=> \&_config_almanac_var_location,
 	    sky		=> \&_config_almanac_var_sky,
+	    twilight	=> \&_config_almanac_var_twilight,
 	};
 
 	if ( my $code = $config->{ lc $name } ) {
@@ -142,6 +143,10 @@ sub _config_almanac_configfile {
     }
     delete $config{sky};
 
+    $self->_config_almanac_var_twilight(
+	twilight	=> delete $config{twilight},
+    );
+
     keys %config
 	and $rslt = $self->_config_almanac_var_location(
 	    location => \%config,
@@ -192,6 +197,33 @@ sub _config_almanac_var_language {
     delete $attr->{lang}{obj};
 
     return $rslt;
+}
+
+sub _config_almanac_var_twilight {
+    my ( $self, $name, $val ) = @_;
+    my $attr = $self->_get_my_attr();
+
+    my $set_val;
+    if ( defined $val ) {
+	if ( Astro::Coord::ECI::Utils::looks_like_number( $val ) ) {
+	    $set_val = - Astro::Coord::ECI::Utils::deg2rad( abs $val );
+	} else {
+	    state $twi_name = {
+		civil		=> Astro::Coord::ECI::Utils::deg2rad( -6 ),
+		nautical	=> Astro::Coord::ECI::Utils::deg2rad( -12 ),
+		astronomical	=> Astro::Coord::ECI::Utils::deg2rad( -18 ),
+	    };
+	    defined( $set_val = $twi_name->{ lc $val } )
+		or croak "Do not recognize $val twilight";
+	}
+    }
+
+    $attr->{config}{twilight} = $val;
+    $attr->{config}{_twilight} = $set_val;
+    $attr->{config}{location}
+	and $attr->{config}{location}->set( $name => $set_val );
+
+    return;
 }
 
 sub _config_var_is_eci {
@@ -268,7 +300,10 @@ sub _config_almanac_var_location {
     } else {
 	$loc = $self->_config_var_is_eci_class( $name, $val );
     }
+
     my $attr = $self->_get_my_attr();
+    defined $attr->{config}{_twilight}
+	and $loc->set( twilight => $attr->{config}{_twilight} );
     foreach my $obj ( @{ $attr->{config}{sky} } ) {
 	$obj->set( station => $loc );
     }
@@ -310,7 +345,7 @@ sub _get_my_attr {
 sub _init_almanac {
     my ( $self, $from ) = @_;
     if ( Scalar::Util::blessed( $from ) && $from->isa( __PACKAGE__ ) ) {
-	state $cfg_var = [ qw{ language location sky } ];
+	state $cfg_var = [ qw{ language location sky twilight } ];
 	my %cfg;
 	@cfg{ @{ $cfg_var } } = $from->get_config( @{ $cfg_var } );
 	# We clone because these objects have state.
@@ -323,8 +358,14 @@ sub _init_almanac {
 	    $self->_config_almanac_var_language( language => $lang );
 	}
 	my $attr = $self->_get_my_attr();
-	$attr->{config}{location} = undef;
-	$attr->{config}{sky} = undef;
+	# NOTE we can't just assign (), because get_config() uses the
+	# presence of a key here to know whether to return the local
+	# value or delegate to SUPER::get_config().
+	%{ $attr->{config} } = (
+	    location	=> undef,
+	    sky		=> undef,
+	    twilight	=> undef,
+	);
     }
     return;
 }
@@ -578,6 +619,15 @@ hours:minutes:seconds) and declination (in decimal degrees), and
 optionally its distance in parsecs. So you can configure (for example)
 
  sky = Astro::Coord::ECI::Star Arcturus 14:15:39.67207 +19.182409
+
+=item twilight
+
+This specifies how far the Sun is below the horizon at the beginning or
+end of twilight. You can specify this in degrees, or as one of the
+following strings for convenience: C<'civil'> (6 degrees); C<'nautical'>
+(12 degrees); or C<'astronomical'> (18 degrees).
+
+The default is civil twilight.
 
 =back
 

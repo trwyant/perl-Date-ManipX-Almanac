@@ -24,7 +24,7 @@ my %opt = (
 @ARGV = map { decode( 'utf-8', $_ ) } @ARGV;
 
 GetOptions( \%opt,
-    qw{ configfile=s format=s gmt! language=s value! },
+    qw{ configfile=s format=s gmt! language=s twilight=s value! },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) and @ARGV or pod2usage( { -verbose => 0 } );
 
@@ -32,7 +32,7 @@ GetOptions( \%opt,
     or die "Config file $opt{configfile} not found\n";
 
 my $dmad = Date::ManipX::Almanac::Date->new();
-foreach my $name ( qw{ configfile language } ) {
+foreach my $name ( qw{ configfile language twilight } ) {
     defined $opt{$name}
 	and $dmad->config( $name => $opt{$name} )
 	and die $dmad->err();
@@ -107,6 +107,19 @@ in the configuration file, if any.
 
 The default (in the absence of a language setting in the configuration
 file) is L<Date::Manip|Date::Manip>'s default, i.e. C<English>.
+
+=head2 --twilight
+
+ --twilight 9
+ --twilight nautical
+
+This option specifies the definition of twilight in degrees or one of
+the accepted strings. It overrides that specified in the configuration
+file, if any.
+
+The default (in the absence of a language setting in the configuration
+file) is L<Astro::Coord::ECI|Astro::Coord::ECI>'s default, i.e. civil
+twilight.
 
 =head2 --value
 
