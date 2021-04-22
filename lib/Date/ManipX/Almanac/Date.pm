@@ -40,8 +40,8 @@ sub new {
 	# into Date::Manip::Date, it is chosen based on knowledge of
 	# what goes on inside the black box.
 
-	# We rely on _init_almanac() to Do The Right Thing.
-	$from = $args[0];	# We rely on _init_almanac to 
+	# We rely on _init_almanac() to Do The Right Thing with $from.
+	$from = $args[0];
 	$self = Date::Manip::Date->new( @args );
 	bless $self, $class;
     }
@@ -95,7 +95,8 @@ sub get_config {
     my @rslt;
 
     foreach my $name ( @arg ) {
-	push @rslt, exists $attr->{config}{$name} ?
+	state $mine = { map { $_ => 1 } qw{ location sky twilight } };
+	push @rslt, $mine->{$name} ?
 	    $attr->{config}{$name} :
 	    $self->SUPER::get_config( $name );
     }
@@ -356,14 +357,7 @@ sub _init_almanac {
 	    $self->_config_almanac_var_language( language => $lang );
 	}
 	my $attr = $self->_get_my_attr();
-	# NOTE we can't just assign (), because get_config() uses the
-	# presence of a key here to know whether to return the local
-	# value or delegate to SUPER::get_config().
-	%{ $attr->{config} } = (
-	    location	=> undef,
-	    sky		=> undef,
-	    twilight	=> undef,
-	);
+	%{ $attr->{config} } = ();
     }
     return;
 }
