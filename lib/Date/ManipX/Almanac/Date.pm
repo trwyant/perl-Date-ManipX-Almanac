@@ -214,7 +214,8 @@ sub _config_almanac_var_twilight {
 		astronomical	=> Astro::Coord::ECI::Utils::deg2rad( -18 ),
 	    };
 	    defined( $set_val = $twi_name->{ lc $val } )
-		or croak "Do not recognize $val twilight";
+		or return $self->_my_config_err(
+		"Do not recognize '$val' twilight" );
 	}
     }
 
@@ -269,15 +270,9 @@ sub _config_var_is_eci_class {
 	    return $rslt;
 	}
     }
-    croak "$val must be an Astro::Coord::ECI object or class";
-}
-
-sub _config_var_is_eci_obj {
-    my ( $self, $name, $val ) = @_;
-    my $rslt;
-    $rslt = $self->_config_var_is_eci( $name, $val )
-	and return $rslt;
-    croak "$val must be an Astro::Coord::ECI object";
+    $self->_my_config_err(
+	"$val must be an Astro::Coord::ECI object or class" );
+    return;
 }
 
 sub _config_almanac_var_location {
@@ -288,7 +283,8 @@ sub _config_almanac_var_location {
     } elsif ( REF_HASH eq ref $val ) {
 	defined $val->{latitude}
 	    and defined $val->{longitude}
-	    or croak 'Location hash must specify both latitude and longitude';
+	    or return $self->_my_config_err(
+	    'Location hash must specify both latitude and longitude' );
 	$loc = Astro::Coord::ECI->new();
 	defined $val->{name}
 	    and $loc->set( name => $val->{name} );
@@ -298,7 +294,8 @@ sub _config_almanac_var_location {
 	    ( $val->{elevation} || 0 ) / METERS_PER_KILOMETER,
 	);
     } else {
-	$loc = $self->_config_var_is_eci_class( $name, $val );
+	$loc = $self->_config_var_is_eci_class( $name, $val )
+	    or return 1;
     }
 
     my $attr = $self->_get_my_attr();
@@ -320,8 +317,9 @@ sub _config_almanac_var_sky {
 
     my @sky;
     foreach my $val ( @{ $values } ) {
-	push @sky,
-	    $self->_config_var_is_eci_class( $name, $val );
+	my $body = $self->_config_var_is_eci_class( $name, $val )
+	    or return 1;
+	push @sky, $body;
 	$attr->{config}{location}
 	    and $sky[-1]->set(
 		station => $attr->{config}{location} );
@@ -383,6 +381,12 @@ sub _init_almanac_language {
     return;
 }
 
+sub _my_config_err {
+    my ( undef, $err ) = @_;
+    warn "ERROR: [config_var] $err\n";
+    return 1;
+}
+
 sub __parse_pre {
     my ( $self, $string ) = @_;
     wantarray
@@ -406,15 +410,23 @@ sub __parse_post {
 
     my $attr = $self->_get_my_attr();
     $attr->{config}{location}
-	or croak 'Location not configured';
+	or return $self->_set_err( "[parse] Location not configured" );
 
     my $code = $self->can( "__parse_post__$event" )
-	or confess "TODO - event $event not yet implemented";
+	or confess "Bug - event $event not implemented";
 
     # TODO support for systems that do not use this epoch.
     $body->universal( $self->secs_since_1970_GMT() );
 
     goto $code;
+}
+
+sub _set_err {
+    my ( $self, $err ) = @_;
+    my $attr = $self->_get_my_attr();
+
+    $attr->{err} = $err;
+    return 1;
 }
 
 sub __parse_post__horizon {
