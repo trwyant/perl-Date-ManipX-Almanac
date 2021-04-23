@@ -68,16 +68,16 @@ sub meta_merge {
 	dynamic_config	=> 1,
 	resources	=> {
 	    bugtracker	=> {
-#		web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Date-ManipX-Almanac',
+		web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Date-ManipX-Almanac',
 #		# web	=> 'https://github.com/trwyant/perl-Date-ManipX-Almanac/issues',
 		mailto  => 'wyant@cpan.org',
 	    },
 	    license	=> 'http://dev.perl.org/licenses/',
-#	    repository	=> {
-#		type	=> 'git',
-#		url	=> 'git://github.com/trwyant/perl-Date-ManipX-Almanac.git',
-#		web	=> 'https://github.com/trwyant/perl-Date-ManipX-Almanac',
-#	    },
+	    repository	=> {
+		type	=> 'git',
+		url	=> 'git://github.com/trwyant/perl-Date-ManipX-Almanac.git',
+		web	=> 'https://github.com/trwyant/perl-Date-ManipX-Almanac',
+	    },
 	},
 	@extra,
     };
