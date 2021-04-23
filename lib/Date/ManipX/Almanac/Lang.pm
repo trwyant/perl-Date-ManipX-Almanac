@@ -48,8 +48,6 @@ sub __new {
 
 =begin comment
 
-=begin comment
-
 =head2 __body_data
 
  my $data = $self->__body_data();
@@ -64,6 +62,8 @@ element is the name of the represented class.
 =end comment
 
 =cut
+
+=begin comment
 
 =head2 __body_re
 
@@ -98,15 +98,27 @@ The keys are the strings captured by C<< (?<specific> ... ) >>,
 normalized by converting to lower case, stripping diacriticals, and
 removing white space.
 
-The values are array references. The first element of the array must be
-the internal name of the event. The second element depends on whether
-the regular expression captured C<< (?<detail> ... ) >>. If it did, the
-second element is a reference to a hash keyed on the normalized capture,
-and whose values are detail specifications. If not, the second element
-is a detail specification.
+The values are array references.
+
+The first element of the array must be the internal name of the event.
+
+The second element depends on whether the regular expression captured
+C<< (?<detail> ... ) >>. If it did, the second element is a reference to
+a hash keyed on the normalized capture, and whose values are detail
+specifications. If not, the second element is a detail specification.
 
 The detail specification is an L<Astro::Coord::ECI|/Astro::Coord::ECI>
 event detail number.
+
+The third element of the array depends on whether the regular expression
+captured C<< (?<qual> ... ) >>. If it did, the third element is a
+reference to a hash keyed on the normalized capture, and whose values
+are qualifier specifications. If not, the third element is ignored, and
+need not be specified.
+
+As of this writing, the C<< (?<qual> ... ) >> capture is used only by
+twilight events, to translate the local equivalents of C<'civil'>,
+C<'nautical'>, and C<'astronomical'>.
 
 =back
 
@@ -175,7 +187,7 @@ sub __event_capture {
     delete $self->{captured_event};
 
     my %capture = map { $_ => $self->__string_to_key( $+{$_} ) }
-	grep { defined $+{$_} } qw{ specific general detail };
+	grep { defined $+{$_} } qw{ specific general detail qual };
 
     foreach (
 	[ specific => $interp_specific ],
@@ -185,11 +197,11 @@ sub __event_capture {
 
 	my ( $name, $interp_event ) = @{ $_ };
 
-	next unless $interp_event and $capture{$name};
+	next unless $interp_event && $capture{$name};
 
 	my $evt = $interp_event->{$capture{$name}}
 	    or confess "Bug - Event '$capture{$name}' not recognized";
-	( $evt, my $det ) = @{ $evt };
+	( $evt, my $det, my $qual ) = @{ $evt };
 
 	if ( defined $capture{detail} ) {
 	    defined( $det = $det->{$capture{detail}} )
@@ -197,7 +209,15 @@ sub __event_capture {
 		    "'$capture{detail}' not recognized";
 	}
 
-	$self->{captured_event} = [ $evt, $det ];
+	if ( defined $capture{qual} ) {
+	    $qual
+		or confess "Bug - $capture{$name} qualifiers not defined";
+	    defined( $qual = $qual->{$capture{qual}} )
+		or confess "Bug - $capture{$name} qualifier ",
+		    "'$capture{qual}' not recognized";
+	}
+
+	$self->{captured_event} = [ $evt, $det, $qual ];
 
 	return '';
     }

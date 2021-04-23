@@ -23,8 +23,11 @@ sub __body_data {
 		(?<detail> begin ) (?: ning )? (?: \s* of )? \s*
 		    (?<specific> twilight ) |
 		(?<detail> end ) (?: ing )? (?: \s* of )? \s*
+		    (?<qual> astronomical | civil | nautical )? \s*
 		    (?<specific> twilight ) |
-		(?<detail> morning | evening ) \s* (?<specific> twilight ) |
+		(?<detail> morning | evening ) \s*
+		    (?<qual> astronomical | civil | nautical )? \s*
+		    (?<specific> twilight ) |
 		(?<specific> local ) \s* (?<detail> noon | midnight ) |
 		(?<detail> spring | vernal | march | september ) \s*
 		    (?<specific> equinox ) |
@@ -62,6 +65,11 @@ sub __body_data {
 			end	=> 0,
 			evening	=> 0,
 			morning	=> 1,
+		    },
+		    {
+			astronomical	=> 'astronomical',
+			civil		=> 'civil',
+			nautical	=> 'nautical',
 		    },
 		],
 	    },
@@ -270,6 +278,10 @@ This implies the Sun, and specifies the time the center of the Sun
 passes above (C<'begin'>) or below (C<'end'>) the twilight setting of
 the C<location> object. This defaults to civil twilight (in the U.S. at
 least), or 6 degrees below the horizon.
+
+One of the words C<'civil'>, C<'nautical'>, or C<'astronomical'> can
+optionally be inserted before C<'twilight'>, specifying that the Sun be
+6, 12, or 18 degrees below the horizon, respectively.
 
 The words C<'the'> and C<'of'> are optional.
 

@@ -23,6 +23,7 @@ sub __body_data {
 	[ 'Astro::Coord::ECI::Sun'	=> qr/ (?: d?el \s* )? sol /smxi,
 	    qr/
 		(?: a \s* )? (?: el \s* )?  (?<specific> crepusculo ) \s*
+		    (?<qual> astronomico | civil | maritimo | nautico )? \s*
 		    (?: de \s* )? (?: la \s* )? (?<detail> manana | tarde ) |
 		(?: al? \s* )? (?: (?: el | la ) \s* )?
 		    (?<detail> mediodia | medianoche ) \s*
@@ -70,6 +71,12 @@ sub __body_data {
 		crepusculo	=> [ twilight => {
 			tarde	=> 0,
 			manana	=> 1,
+		    },
+		    {
+			astronomico	=> 'astronomical',
+			civil		=> 'civil',
+			maritimo	=> 'nautical',
+			nautico		=> 'nautical',
 		    },
 		],
 	    },
@@ -319,6 +326,11 @@ This implies the Sun, and specifies the time the center of the Sun
 passes above (C<'manana'>) or below (C<'tarde'>) the twilight setting of
 the C<location> object. This defaults to civil twilight (in the U.S. at
 least), or 6 degrees below the horizon.
+
+One of the words C<'civil'>, C<'nautico'>, C<'maritimo'>, or
+C<'astronomico'> can optionally be inserted after C<'crepusculo'>,
+specifying that the Sun be 6, 12, 12, or 18 degrees below the horizon,
+respectively.
 
 The words C<'a'>, C<'el'>, C<'la'>, and C<'de'> are optional.
 

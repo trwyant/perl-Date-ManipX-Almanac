@@ -57,6 +57,14 @@ is parsed_value( $dmad, 'la puesta del sol 2021-04-01' ), '2021040123:32:04',
 is parsed_value( $dmad, '2021-04-01 a la salida del sol' ), '2021040110:52:21',
     q<Time of Sunrise April 1 2021>;
 
+is parsed_value( $dmad, 'Crepusculo de la manana 2021-04-01' ),
+    '2021040110:25:32',
+    q<Time of Morning twilight 2021-04-01>;
+
+is parsed_value( $dmad, 'Crepusculo astronomico de la manana 2021-04-01' ),
+    '2021040109:21:15',
+    q<Time of Morning astronomical twilight 2021-04-01>;
+
 is parsed_value( $dmad, '2021-04-01 la luna es el mas alto' ),
     '2021040108:26:53',
     q<Time of culmination of Moon April 1 2021>;

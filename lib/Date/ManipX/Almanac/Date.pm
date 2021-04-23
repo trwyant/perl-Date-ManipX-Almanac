@@ -209,12 +209,7 @@ sub _config_almanac_var_twilight {
 	if ( Astro::Coord::ECI::Utils::looks_like_number( $val ) ) {
 	    $set_val = - Astro::Coord::ECI::Utils::deg2rad( abs $val );
 	} else {
-	    state $twi_name = {
-		civil		=> Astro::Coord::ECI::Utils::deg2rad( -6 ),
-		nautical	=> Astro::Coord::ECI::Utils::deg2rad( -12 ),
-		astronomical	=> Astro::Coord::ECI::Utils::deg2rad( -18 ),
-	    };
-	    defined( $set_val = $twi_name->{ lc $val } )
+	    defined( $set_val = $self->_get_twilight_qual( $val ) )
 		or return $self->_my_config_err(
 		"Do not recognize '$val' twilight" );
 	}
@@ -339,6 +334,18 @@ sub _config_almanac_var_sky {
 sub _get_my_attr {
     my ( $self ) = @_;
     return ( $self->{ +__PACKAGE__ } ||= {} );
+}
+
+sub _get_twilight_qual {
+    my ( undef, $qual ) = @_;	# Invocant not used
+    defined $qual
+	or return $qual;
+    state $twi_name = {
+	civil		=> Astro::Coord::ECI::Utils::deg2rad( -6 ),
+	nautical	=> Astro::Coord::ECI::Utils::deg2rad( -12 ),
+	astronomical	=> Astro::Coord::ECI::Utils::deg2rad( -18 ),
+    };
+    return $twi_name->{ lc $qual };
 }
 
 sub _init_almanac {
@@ -467,11 +474,11 @@ sub __parse_post__quarter {
 }
 
 sub __parse_post__twilight {
-    my ( $self, $body, undef, $detail ) = @_;
+    my ( $self, $body, undef, $detail, $qual ) = @_;
 
     my $station = $body->get( 'station' );
-    my $twilight = $station->get( 'almanac_horizon' ) +
-	$station->get( 'twilight' );
+    my $twilight = $station->get( 'almanac_horizon' ) + (
+	$self->_get_twilight_qual( $qual ) // $station->get( 'twilight' ) );
 
     my ( $time, $which );
     while ( 1 ) {
