@@ -8,7 +8,7 @@ use warnings;
 use Carp;
 use Unicode::Diacritic::Strip ();
 
-our $VERSION = '0.000_001';
+our $VERSION = '0.000_002';
 
 use constant REF_ARRAY			=> ref [];
 

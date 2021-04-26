@@ -1,1 +1,27 @@
+0.000_002	2021-04-25	T. R. Wyant
+    Parse civil, nautical, or astronomical twilight.
+
+    Explicitly dispatch get_config to self or SUPER:: rather than doing
+    it based on the contents of $attr->{config}{...}. This way I do not
+    have to be so picky about how it gets initialized.
+
+    Make error reporting more like Date::Manip.
+
+    Add configuration for twilight.
+
+    Delegate config file reading to tz object.  This means I call a
+    public method rather than a private one to read the file. There is
+    still an encapsulation violation, though, because the data go in a
+    hash I do not own, with no assurance that there will not be future
+    conflicts.
+
+    Require Astro::Coord::ECI 0.119, for working clone().
+
+    Install optional-module testing framework.
+
+    Allow incidental words around star names.
+
+    Add config() machinery for Astro::Coord::ECI::Star
+
 0.000_001		Unknown	T. R. Wyant
+    Initial internal publication.
