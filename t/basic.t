@@ -26,6 +26,8 @@ load_module_ok 'Date::ManipX::Almanac::Date';
 
 load_module_ok 'Date::ManipX::Almanac';
 
+isa_ok 'Date::ManipX::Almanac', 'Date::Manip::DM6';
+
 done_testing;
 
 1;

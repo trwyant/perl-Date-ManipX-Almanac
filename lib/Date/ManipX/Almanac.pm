@@ -5,7 +5,9 @@ use 5.010;
 use strict;
 use warnings;
 
-use Carp;
+use parent qw{ Date::Manip };
+
+# use Carp;
 
 our $VERSION = '0.000_002';
 
@@ -31,7 +33,14 @@ At the moment only dates are supported (via
 L<Date::ManipX::Almanac::Date|Date::ManipX::Almanac::Date>), and this
 module is simply a place-holder for the top of the hierarchy.
 
+B<However> this module is a subclass of L<Date::Manip|Date::Manip>, so
+that you can probe for C<DM5> or C<DM6> functionality with C<isa()>. Of
+course, if C<< Date::ManipX::Almanac->isa( 'Date::Manip::DM6' ) >>
+returns a false value it is probably a bug.
+
 =head1 SEE ALSO
+
+L<Date::Manip|Date::Manip>
 
 L<Date::Manip::Date|Date::Manip::Date>
 
