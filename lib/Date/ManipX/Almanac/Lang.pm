@@ -34,10 +34,13 @@ sub __new {
 	or confess 'Bug - sky must be an ARRAY ref';
 
     # For seasons in the Southern hemisphere. We rely on all astonomical
-    # bodies having the same station attribute.
+    # bodies having the same station attribute. If there is none we
+    # assume the Northern hemisphere.
     my @season = ( 0 .. 3 );
+    my $sta;
     @{ $arg{sky} }
-	and ( $arg{sky}[0]->get( 'station' )->geodetic() ) < 0
+	and $sta = $arg{sky}[0]->get( 'station' )
+	and ( $sta->geodetic() )[0] < 0
 	and push @season, splice @season, 0, 2;
 
     return bless {
