@@ -191,6 +191,7 @@ sub _config_almanac_var_language {
 	and $lang eq $attr->{lang}
 	and return $rslt;
 
+    # NOTE encapsulation violation
     my $mod = "Date::ManipX::Almanac::Lang::$Date::Manip::Lang::index::Lang{$lang}";
     Module::Load::load( $mod );	# Dies on error
     $attr->{lang}{lang}			= $lang;
@@ -301,6 +302,14 @@ sub _config_almanac_var_location {
 	$obj->set( station => $loc );
     }
     $attr->{config}{location} = $loc;
+
+    # NOTE we do this because when the Lang object initializes itself it
+    # consults the first sky object's station attribute (set above) to
+    # figure out whether it is in the Northern or Southern hemisphere.
+    # The object will be re-created when we actually try to perform a
+    # parse.
+    delete $attr->{lang}{obj};
+
     return;
 }
 
@@ -322,6 +331,9 @@ sub _config_almanac_var_sky {
     }
 
     @{ $attr->{config}{sky} } = @sky;
+
+    # NOTE we do this to force re-creation of the Lang object, which
+    # then picks up the new sky.
     delete $attr->{lang}{obj};
 
     return;
