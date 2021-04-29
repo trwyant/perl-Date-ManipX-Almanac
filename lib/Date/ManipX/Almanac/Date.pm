@@ -191,8 +191,7 @@ sub _config_almanac_var_language {
 	and $lang eq $attr->{lang}
 	and return $rslt;
 
-    # NOTE encapsulation violation
-    my $mod = "Date::ManipX::Almanac::Lang::$Date::Manip::Lang::index::Lang{$lang}";
+    my $mod = "Date::ManipX::Almanac::Lang::$lang";
     Module::Load::load( $mod );	# Dies on error
     $attr->{lang}{lang}			= $lang;
     $attr->{lang}{mod}			= $mod;
