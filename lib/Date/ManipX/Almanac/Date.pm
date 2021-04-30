@@ -13,7 +13,7 @@ use Carp;
 use Module::Load ();
 use Scalar::Util ();
 
-our $VERSION = '0.000_002';
+our $VERSION = '0.000_003';
 
 use constant REF_ARRAY	=> ref [];
 use constant REF_HASH	=> ref {};

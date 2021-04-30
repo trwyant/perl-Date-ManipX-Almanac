@@ -1,3 +1,19 @@
+0.000_003	2021-04-30	T. R. Wyant
+    Fix init error in Lang if location not set.  This really just gets
+    us a Date::Manip-ish error when we attempt to parse a date, but this
+    is better than an exception.
+
+    Eliminate encapsulation violation setting language
+
+    Clear language object when location is set.  This is because when
+    the Lang object initializes itself it determines whether it is in
+    the Northern or Southern hemisphere for seasonal reasons (things
+    like whether the March equinox is Spring or Fall). We need to
+    re-initialize this if the location changes, because we might have
+    changed hemispheres.
+
+    Make Date::ManipX::Almanac subclass of Date::Manip
+
 0.000_002	2021-04-25	T. R. Wyant
     Parse civil, nautical, or astronomical twilight.
 
