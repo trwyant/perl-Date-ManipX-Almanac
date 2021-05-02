@@ -20,8 +20,19 @@ SKIP: {
 load_module_ok 'Date::ManipX::Almanac::Date';
 
 {
+    local $@ = undef;
+
     my $obj = eval { Date::ManipX::Almanac::Date->new() };
     isa_ok $obj, 'Date::ManipX::Almanac::Date';
+
+    my $o2 = eval { $obj->new() };
+    isa_ok $o2, 'Date::ManipX::Almanac::Date';
+
+    my $o_config = eval { $obj->new_config() };
+    isa_ok $o_config, 'Date::ManipX::Almanac::Date';
+
+    my $o_date = eval { $obj->new_date() };
+    isa_ok $o_date, 'Date::ManipX::Almanac::Date';
 }
 
 load_module_ok 'Date::ManipX::Almanac';
