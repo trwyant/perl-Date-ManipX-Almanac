@@ -82,6 +82,10 @@ is parsed_value( $dmad, 'la luna nueva 2021-04-01' ), '2021041202:30:21',
 is parsed_value( $dmad, 'el solsticio del verano 2021' ), '2021062103:31:34',
     q<Summer solstice 2021>;
 
+is parsed_value( $dmad, 'el solsticio del verano despues de 2021-07-04' ),
+    '2022062109:13:20',
+    q<el solsticio del verano despues de 2021-07-04>;
+
 SKIP: {
     NO_STAR
 	and skip NO_STAR;

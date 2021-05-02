@@ -21,13 +21,20 @@ use constant METERS_PER_KILOMETER	=> 1000;
 
 sub new {
     my ( $class, @args ) = @_;
+    return $class->_new( new => @args );
+}
+
+sub _new {
+    my ( $class, $method, @args ) = @_;
 
     my ( $self, $from );
+    my $code = Date::Manip::Date->can( $method )
+	or confess "Bug - Date::Manip::Date has no $method() method";
     if ( ref $class ) {
 	# NOTE that Date::Manip::Date's new() method seems to be
 	# well-behaved (for my purposes) when the invocant is another
 	# object.
-	$self = $class->SUPER::new();
+	$self = $code->( $class );
 	$from = $class;
     } else {
 	# NOTE logical encapsulation violation: Date::Manip::Date's
@@ -39,7 +46,7 @@ sub new {
 
 	# We rely on _init_almanac() to Do The Right Thing with $from.
 	$from = $args[0];
-	$self = Date::Manip::Date->new();
+	$self = $code->( 'Date::Manip::Date' );
 	bless $self, $class;
     }
 
@@ -47,6 +54,7 @@ sub new {
 
     REF_ARRAY eq ref $args[-1]
 	and $self->config( @{ pop @args } );
+
     $self->get_config( 'sky' )
 	or $self->_config_almanac_default_sky();
 
@@ -59,17 +67,10 @@ sub new {
 # This is a duplicate (in my own words) of the same-named
 # Date::Manip::Obj method. It is needed because Date::Manip::Obj
 # makes a subroutine call to new(), not a method call.
-#
-# NOTE encapsulation violation: configuration variable 'ignore' is
-# undocumented.
 sub new_config {
     my ( $class, @args ) = @_;
 
-    @args
-	and REF_ARRAY eq ref $args[-1]
-	or push @args, [ ignore => 'ignore' ];
-
-    return $class->new( @args );
+    return $class->_new( new_config => @args );
 }
 
 sub new_date {

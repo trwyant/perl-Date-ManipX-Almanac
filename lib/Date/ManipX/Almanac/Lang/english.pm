@@ -139,6 +139,10 @@ sub __general_event_interp {
     ];
 }
 
+sub __ignore_after_re {
+    return qr< \s* (?: (?: on | at ) \s+ or \s+ )? after >smxi;
+}
+
 1;
 
 __END__

@@ -157,6 +157,10 @@ sub __general_event_interp {
     ];
 }
 
+sub __ignore_after_re {
+    return qr< \s* despues (?: \s* de )? (?: \s* l[ao]s )? >smxi;
+}
+
 1;
 
 __END__

@@ -281,6 +281,53 @@ captured in C<< (?<detail> ... ) >>.
 
 =begin comment
 
+=head2 __ignore_after_re
+
+ my $ignore_after_re = $self->__ignore_after_re()
+
+This method returns a language-specific regular expression which is
+removed if it appears after the language-specific almanac event
+specification, but is otherwise ignored. The idea is that you can use
+this to allow the language-specific version of
+
+ summer solstice on or after july 4 2020
+
+where the C<'on or after'> was matched by the returned expression.
+
+This implementation returns an expression that matches nothing.
+
+=end comment
+
+=cut
+
+sub __ignore_after_re {
+    return qr< .{0} >smx;
+}
+
+=begin comment
+
+=head2 __ignore_before_re
+
+ my $ignore_before_re = $self->__ignore_before_re()
+
+This method returns a language-specific regular expression which is
+removed if it appears before the language-specific almanac event
+specification, but is otherwise ignored. It is intended to be analogous
+to C<__ignore_after_re()>, but at the moment I know of no use for it,
+and have provided it simply for orthogonality's sake.
+
+This implementation returns an expression that matches nothing.
+
+=end comment
+
+=cut
+
+sub __ignore_before_re {
+    return qr< .{0} >smx;
+}
+
+=begin comment
+
 =head2 __midnight
 
  say 'Midnight is ', $dmal->__midnight();
@@ -334,17 +381,19 @@ sub __parse_pre {
     unless ( $self->{_sky} ) {
 	$self->{_sky} = \my @res;
 	my $general_re = $self->__general_event_re();
+	my $ignore_after_re = $self->__ignore_after_re();
+	my $ignore_before_re = $self->__ignore_before_re();
 	foreach my $body ( @{ $self->{sky} } ) {
 	    my ( $body_re, $specific_re, $interp_specific ) =
 		$self->__body_re( $body )
 		or confess 'Bug - no re computed for ', $body->get( 'name' );
-	    my $re = $specific_re ? qr/ \b (?:
+	    my $re = $specific_re ? qr/ \b $ignore_before_re? (?:
 		$specific_re |
 		(?: $body_re \s* $general_re ) |
 		(?: $general_re \s* $body_re )
-		) \b /smxi
-	    : qr/ \b (?: (?: $body_re \s* $general_re ) |
-		(?: $general_re \s* $body_re ) ) \b /smxi;
+		) $ignore_after_re? \b /smxi
+	    : qr/ \b $ignore_before_re? (?: (?: $body_re \s* $general_re ) |
+		(?: $general_re \s* $body_re ) ) $ignore_after_re? \b /smxi;
 	    push @res, [ $re, $body, $interp_specific ];
 	}
     }
