@@ -128,6 +128,12 @@ sub get_config {
     return 1 == @rslt ? $rslt[0] : @rslt;
 }
 
+sub input {
+    my ( $self ) = @_;
+    my $attr = $self->_get_my_attr();
+    return $attr->{input};
+}
+
 sub parse {
     my ( $self, $string ) = @_;
     my ( $idate, @event ) = $self->__parse_pre( $string );
@@ -429,6 +435,7 @@ sub __parse_pre {
 	or confess 'Bug - __parse_pre() must be called in list context';
     my $attr = $self->_get_my_attr();
     delete $attr->{err};
+    $attr->{input} = $string;
     @{ $attr->{config}{sky} || [] }
 	or return $string;
 

@@ -28,6 +28,7 @@ subtest q<Parse 'today sunrise'> => sub {
     is $body, $sky->[0], q<Body is the Sun>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 1, q<Detail is 1>;
+    is $dmad->input(), 'today sunrise', q<Input was 'today sunrise'>;
 };
 
 subtest q<Parse 'Moon sets'> => sub {
@@ -36,6 +37,7 @@ subtest q<Parse 'Moon sets'> => sub {
     is $body, $sky->[1], q<Body is the Moon>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
+    is $dmad->input(), 'Moon sets', q<Input was 'Moon sets'>;
 };
 
 subtest q<Parse 'Arcturus sets'> => sub {
@@ -47,6 +49,7 @@ subtest q<Parse 'Arcturus sets'> => sub {
     is $body, $sky->[2], q<Body is Arcturus>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
+    is $dmad->input(), 'Arcturus sets', q<Input was 'Arcturus sets'>;
 };
 
 is parsed_value( $dmad, 'Sunset 2021-04-01' ), '2021040123:32:04',

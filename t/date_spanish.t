@@ -29,6 +29,8 @@ subtest q<Parse 'hoy a la salida del sol'> => sub {
     is $body, $sky->[0], q<Body is the Sun>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 1, q<Detail is 1>;
+    is $dmad->input(), 'hoy a la salida del sol',
+	q<Input was 'hoy a la salida del sol'>;
 };
 
 subtest q<Parse 'la puesta de la luna'> => sub {
@@ -38,6 +40,8 @@ subtest q<Parse 'la puesta de la luna'> => sub {
     is $body, $sky->[1], q<Body is the Moon>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
+    is $dmad->input(), 'la puesta de la luna',
+	q<Input was 'la puesta de la luna'>;
 };
 
 subtest q<Parse 'la puesta del arcturus'> => sub {
@@ -49,6 +53,8 @@ subtest q<Parse 'la puesta del arcturus'> => sub {
     is $body, $sky->[2], q<Body is Arcturus>;
     is $event, 'horizon', q<Event is 'horizon'>;
     is $detail, 0, q<Detail is 0>;
+    is $dmad->input(), 'la puesta del arcturus',
+	q<Input was 'la puesta del arcturus'>;
 };
 
 is parsed_value( $dmad, 'la puesta del sol 2021-04-01' ), '2021040123:32:04',
