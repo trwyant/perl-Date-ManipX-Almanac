@@ -7,6 +7,12 @@ use warnings;
 
 use parent qw{ Date::Manip };
 
+Date::Manip->import();
+
+use Date::ManipX::Almanac::Date;
+
+our @EXPORT = @Date::Manip::EXPORT;
+
 # use Carp;
 
 our $VERSION = '0.000_003';

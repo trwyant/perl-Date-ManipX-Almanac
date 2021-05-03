@@ -78,6 +78,16 @@ sub new_date {
     return __PACKAGE__->new( @arg );
 }
 
+sub calc {
+    my ( $self, $obj, @args ) = @_;
+
+    # NOTE encapsulation violation.
+    $obj->isa( __PACKAGE__ )
+	and return $self->_calc_date_date( $obj, @args );
+
+    return $self->SUPER::calc( $obj, @args );
+}
+
 sub config {
     my ( $self, @arg ) = @_;
 
@@ -222,13 +232,16 @@ sub _config_almanac_var_language {
 	and return $rslt;
 
     my $mod = "Date::ManipX::Almanac::Lang::$lang";
-    Module::Load::load( $mod );	# Dies on error
+    __load_module( $mod );	# Dies on error
     $attr->{lang}{lang}			= $lang;
     $attr->{lang}{mod}			= $mod;
     delete $attr->{lang}{obj};
 
     return $rslt;
 }
+
+# We do this circumlocution so we can hook during testing if need be.
+*__load_module = Module::Load->can( 'load' );
 
 sub _config_almanac_var_twilight {
     my ( $self, $name, $val ) = @_;
