@@ -21,9 +21,13 @@ t/data/white-house.config
 t/data/white-house-with-star.config
 t/date_0.t
 t/date_english.t
+tools/My/Symdump.pm
+tools/convert-to-almanac
+tools/dmd-public-interface
 xt/author/basic.t
 xt/author/changes.t
 xt/author/critic.t
+xt/author/date_manip_date_interface.t
 xt/author/executable.t
 xt/author/kwalitee.t
 xt/author/manifest.t

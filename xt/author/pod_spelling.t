@@ -32,7 +32,9 @@ all_pod_files_spelling_ok();
 __DATA__
 ano
 año
+calc
 ConfigFile
+dmd
 geolocation
 mediodia
 merchantability

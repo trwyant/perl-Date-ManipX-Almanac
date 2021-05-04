@@ -5,11 +5,10 @@ use 5.010;
 use strict;
 use warnings;
 
-use parent qw{ Date::Manip::Date };
-
 use Astro::Coord::ECI 0.119;	# For clone() to work.
 use Astro::Coord::ECI::Utils 0.119 qw{ TWOPI };
 use Carp;
+use Date::Manip::Date;
 use Module::Load ();
 use Scalar::Util ();
 
@@ -25,35 +24,38 @@ sub new {
 }
 
 sub _new {
-    my ( $class, $method, @args ) = @_;
+    my ( $class, $new_method, @args ) = @_;
 
-    my ( $self, $from );
-    my $code = Date::Manip::Date->can( $method )
-	or confess "Bug - Date::Manip::Date has no $method() method";
-    if ( ref $class ) {
-	# NOTE that Date::Manip::Date's new() method seems to be
-	# well-behaved (for my purposes) when the invocant is another
-	# object.
-	$self = $code->( $class );
-	$from = $class;
-    } else {
-	# NOTE logical encapsulation violation: Date::Manip::Date's
-	# new() method contains logic based on the class of the
-	# invocant, and this logic takes an undesirable branch if I just
-	# do $class->new(). So though this implementation does not reach
-	# into Date::Manip::Date, it is chosen based on knowledge of
-	# what goes on inside the black box.
-
-	# We rely on _init_almanac() to Do The Right Thing with $from.
-	$from = $args[0];
-	$self = $code->( 'Date::Manip::Date' );
-	bless $self, $class;
+    my @config;
+    if ( @args && REF_ARRAY eq ref $args[-1] ) {
+	@config = @{ pop @args };
+	state $method_map = {
+	    new	=> 'new_config',
+	};
+	$new_method = $method_map->{$new_method} // $new_method;
     }
+
+    my ( $dmd, $from );
+    if ( ref $class ) {
+	$from = $class;
+	$dmd = $class->dmd()->$new_method();
+    } elsif ( Scalar::Util::blessed( $args[0] ) ) {
+	$from = shift @args;
+	$dmd = Date::Manip::Date->$new_method(
+	    $from->isa( __PACKAGE__ ) ? $from->dmd() : $from
+	);
+    } else {
+	$dmd = Date::Manip::Date->$new_method();
+    }
+
+    my $self = bless {
+	dmd	=> $dmd,
+    }, ref $class || $class;
 
     $self->_init_almanac( $from );
 
-    REF_ARRAY eq ref $args[-1]
-	and $self->config( @{ pop @args } );
+    @config
+	and $self->config( @config );
 
     $self->get_config( 'sky' )
 	or $self->_config_almanac_default_sky();
@@ -64,35 +66,36 @@ sub _new {
     return $self;
 }
 
-# This is a duplicate (in my own words) of the same-named
-# Date::Manip::Obj method. It is needed because Date::Manip::Obj
-# makes a subroutine call to new(), not a method call.
 sub new_config {
     my ( $class, @args ) = @_;
-
     return $class->_new( new_config => @args );
 }
 
 sub new_date {
-    my ( @arg ) = @_;
-    return __PACKAGE__->new( @arg );
+    my ( $class, @args ) = @_;
+    # return $class->_new( new_date => @args );
+    return $class->new( @args );
 }
 
 sub calc {
-    my ( $self, $obj, @args ) = @_;
+   my ( $self, $obj, @args ) = @_;
+   Scalar::Util::blessed( $obj )
+       and $obj->isa( __PACKAGE__ )
+       and $obj = $obj->dmd();
+   return $self->dmd()->calc( $obj, @args );
+}
 
-    # NOTE encapsulation violation.
-    $obj->isa( __PACKAGE__ )
-	and return $self->_calc_date_date( $obj, @args );
-
-    return $self->SUPER::calc( $obj, @args );
+sub cmp : method {	## no critic (ProhibitBuiltinHomonyms)
+   my ( $self, $date ) = @_;
+   $date->isa( __PACKAGE__ )
+       and $date = $date->dmd();
+   return $self->dmd()->cmp( $date );
 }
 
 sub config {
     my ( $self, @arg ) = @_;
 
-    my $attr = $self->_get_my_attr();
-    delete $attr->{err};
+    delete $self->{err};
 
     while ( @arg ) {
 	my ( $name, $val ) = splice @arg, 0, 2;
@@ -109,30 +112,33 @@ sub config {
 	if ( my $code = $config->{ lc $name } ) {
 	    $code->( $self, $name, $val );
 	} else {
-	    $self->SUPER::config( $name, $val );
+	    $self->dmd()->config( $name, $val );
 	}
     }
 
     return;
 }
 
+sub dmd {
+    my ( $self ) = @_;
+    return $self->{dmd};
+}
+
 sub err {
     my ( $self ) = @_;
-    my $attr = $self->_get_my_attr();
-    return $attr->{err} // $self->SUPER::err();
+    return $self->{err} // $self->dmd()->err();
 }
 
 sub get_config {
     my ( $self, @arg ) = @_;
-    my $attr = $self->_get_my_attr();
-    delete $attr->{err};
+    delete $self->{err};
     my @rslt;
 
     foreach my $name ( @arg ) {
 	state $mine = { map { $_ => 1 } qw{ location sky twilight } };
 	push @rslt, $mine->{$name} ?
-	    $attr->{config}{$name} :
-	    $self->SUPER::get_config( $name );
+	    $self->{config}{$name} :
+	    $self->dmd()->get_config( $name );
     }
 
     return 1 == @rslt ? $rslt[0] : @rslt;
@@ -140,20 +146,27 @@ sub get_config {
 
 sub input {
     my ( $self ) = @_;
-    my $attr = $self->_get_my_attr();
-    return $attr->{input};
+    return $self->{input};
+}
+
+sub list_events {
+   my ( $self, @args ) = @_;
+   Scalar::Util::blessed( $args[0] )
+       and $args[0]->isa( __PACKAGE__ )
+       and $args[0] = $args[0]->dmd();
+   return $self->dmd()->list_events( @args );
 }
 
 sub parse {
     my ( $self, $string ) = @_;
     my ( $idate, @event ) = $self->__parse_pre( $string );
-    return $self->SUPER::parse( $idate ) || $self->__parse_post( @event );
+    return $self->dmd()->parse( $idate ) || $self->__parse_post( @event );
 }
 
 sub parse_time {
     my ( $self, $string ) = @_;
     my ( $idate, @event ) = $self->__parse_pre( $string );
-    return $self->SUPER::parse_time( $idate ) || $self->__parse_post( @event );
+    return $self->dmd()->parse_time( $idate ) || $self->__parse_post( @event );
 }
 
 sub _config_almanac_configfile {
@@ -162,7 +175,7 @@ sub _config_almanac_configfile {
     my $rslt;
     my @almanac;
     {
-	my $tz = $self->tz();
+	my $tz = $self->dmd()->tz();
 	my $base = $tz->base();
 	# NOTE encapsulation violation
 	local $base->{data}{sections}{almanac} = undef;
@@ -203,9 +216,12 @@ sub _config_almanac_configfile {
 
 sub _config_almanac_default {
     my ( $self, $name, $val ) = @_;
-    %{ $self->_get_my_attr() } = ();
-    my $rslt = $self->SUPER::config( $name, $val ) ||
-	$self->_config_almanac_default_sky();
+    %{ $self->{config} } = ();
+    delete $self->{lang};
+    my $rslt = $self->dmd()->config( $name, $val ) ||
+	$self->_config_almanac_default_sky() ||
+	$self->_config_almanac_var_language( language => 'english' ) ||
+	$self->_config_almanac_var_twilight( twilight => 'civil' );
     return $rslt;
 }
 
@@ -221,21 +237,20 @@ sub _config_almanac_default_sky {
 sub _config_almanac_var_language {
     my ( $self, $name, $val ) = @_;
     my $rslt;
-    $rslt = $self->SUPER::config( $name, $val )
+    $rslt = $self->dmd()->config( $name, $val )
 	and return $rslt;
 
-    my $attr = $self->_get_my_attr();
     my $lang = lc $val;
 
-    exists $attr->{lang}
-	and $lang eq $attr->{lang}
+    exists $self->{lang}
+	and $lang eq $self->{lang}
 	and return $rslt;
 
     my $mod = "Date::ManipX::Almanac::Lang::$lang";
     __load_module( $mod );	# Dies on error
-    $attr->{lang}{lang}			= $lang;
-    $attr->{lang}{mod}			= $mod;
-    delete $attr->{lang}{obj};
+    $self->{lang}{lang}			= $lang;
+    $self->{lang}{mod}			= $mod;
+    delete $self->{lang}{obj};
 
     return $rslt;
 }
@@ -245,7 +260,6 @@ sub _config_almanac_var_language {
 
 sub _config_almanac_var_twilight {
     my ( $self, $name, $val ) = @_;
-    my $attr = $self->_get_my_attr();
 
     my $set_val;
     if ( defined $val ) {
@@ -258,10 +272,10 @@ sub _config_almanac_var_twilight {
 	}
     }
 
-    $attr->{config}{twilight} = $val;
-    $attr->{config}{_twilight} = $set_val;
-    $attr->{config}{location}
-	and $attr->{config}{location}->set( $name => $set_val );
+    $self->{config}{twilight} = $val;
+    $self->{config}{_twilight} = $set_val;
+    $self->{config}{location}
+	and $self->{config}{location}->set( $name => $set_val );
 
     return;
 }
@@ -337,27 +351,26 @@ sub _config_almanac_var_location {
 	    or return 1;
     }
 
-    my $attr = $self->_get_my_attr();
-    defined $attr->{config}{_twilight}
-	and $loc->set( twilight => $attr->{config}{_twilight} );
-    foreach my $obj ( @{ $attr->{config}{sky} } ) {
+    defined $self->{config}{_twilight}
+	and defined $loc
+	and $loc->set( twilight => $self->{config}{_twilight} );
+    foreach my $obj ( @{ $self->{config}{sky} } ) {
 	$obj->set( station => $loc );
     }
-    $attr->{config}{location} = $loc;
+    $self->{config}{location} = $loc;
 
     # NOTE we do this because when the Lang object initializes itself it
     # consults the first sky object's station attribute (set above) to
     # figure out whether it is in the Northern or Southern hemisphere.
     # The object will be re-created when we actually try to perform a
     # parse.
-    delete $attr->{lang}{obj};
+    delete $self->{lang}{obj};
 
     return;
 }
 
 sub _config_almanac_var_sky {
     my ( $self, $name, $values ) = @_;
-    my $attr = $self->_get_my_attr();
 
     ref $values
 	or $values = [ $values ];
@@ -367,27 +380,18 @@ sub _config_almanac_var_sky {
 	my $body = $self->_config_var_is_eci_class( $name, $val )
 	    or return 1;
 	push @sky, $body;
-	$attr->{config}{location}
+	$self->{config}{location}
 	    and $sky[-1]->set(
-		station => $attr->{config}{location} );
+		station => $self->{config}{location} );
     }
 
-    @{ $attr->{config}{sky} } = @sky;
+    @{ $self->{config}{sky} } = @sky;
 
     # NOTE we do this to force re-creation of the Lang object, which
     # then picks up the new sky.
-    delete $attr->{lang}{obj};
+    delete $self->{lang}{obj};
 
     return;
-}
-
-# NOTE encapsulation violation.
-# I suppose I could get around this by implementing my attributes as an
-# inside-out object, or implementing the Date::Manip functionality as
-# "has-a" rather than "is-a".
-sub _get_my_attr {
-    my ( $self ) = @_;
-    return ( $self->{ +__PACKAGE__ } ||= {} );
 }
 
 sub _get_twilight_qual {
@@ -417,8 +421,7 @@ sub _init_almanac {
 	if ( my $lang = $self->get_config( 'language' ) ) {
 	    $self->_config_almanac_var_language( language => $lang );
 	}
-	my $attr = $self->_get_my_attr();
-	%{ $attr->{config} } = ();
+	%{ $self->{config} } = ();
     }
     return;
 }
@@ -426,12 +429,11 @@ sub _init_almanac {
 sub _init_almanac_language {
     my ( $self, $force ) = @_;
 
-    my $attr = $self->_get_my_attr();
     not $force
-	and exists $attr->{lang}
+	and exists $self->{lang}
 	and return;
 
-    $attr->{lang}		= {};
+    $self->{lang}		= {};
 
     return;
 }
@@ -446,16 +448,15 @@ sub __parse_pre {
     my ( $self, $string ) = @_;
     wantarray
 	or confess 'Bug - __parse_pre() must be called in list context';
-    my $attr = $self->_get_my_attr();
-    delete $attr->{err};
-    $attr->{input} = $string;
-    @{ $attr->{config}{sky} || [] }
+    delete $self->{err};
+    $self->{input} = $string;
+    @{ $self->{config}{sky} || [] }
 	or return $string;
 
-    $attr->{lang}{obj} ||= $attr->{lang}{mod}->__new(
-	sky		=> $attr->{config}{sky},
+    $self->{lang}{obj} ||= $self->{lang}{mod}->__new(
+	sky		=> $self->{config}{sky},
     );
-    return $attr->{lang}{obj}->__parse_pre( $string );
+    return $self->{lang}{obj}->__parse_pre( $string );
 }
 
 sub __parse_post {
@@ -464,12 +465,13 @@ sub __parse_post {
 	and defined $event
 	or return;
 
-    my $attr = $self->_get_my_attr();
-    $attr->{config}{location}
+    $self->{config}{location}
 	or return $self->_set_err( "[parse] Location not configured" );
 
     my $code = $self->can( "__parse_post__$event" )
 	or confess "Bug - event $event not implemented";
+
+    $DB::single = 1;	# Debug
 
     # TODO support for systems that do not use this epoch.
     $body->universal( $self->secs_since_1970_GMT() );
@@ -479,9 +481,8 @@ sub __parse_post {
 
 sub _set_err {
     my ( $self, $err ) = @_;
-    my $attr = $self->_get_my_attr();
 
-    $attr->{err} = $err;
+    $self->{err} = $err;
     return 1;
 }
 
@@ -547,6 +548,68 @@ sub __parse_post__twilight {
     return;
 }
 
+# Implemented as a subroutine so I can authortest for changes. This was
+# the list as of Date::Manip::Date version 6.85. The list is generated
+# by tools/dmd_public_interface.
+sub __date_manip_date_public_interface {
+    return ( qw{
+	base
+	calc
+	cmp
+	complete
+	config
+	convert
+	err
+	get_config
+	holiday
+	input
+	is_business_day
+	is_date
+	is_delta
+	is_recur
+	list_events
+	list_holidays
+	nearest_business_day
+	new
+	new_config
+	new_date
+	new_delta
+	new_recur
+	next
+	next_business_day
+	parse
+	parse_date
+	parse_format
+	parse_time
+	prev
+	prev_business_day
+	printf
+	secs_since_1970_GMT
+	set
+	tz
+	value
+	version
+	week_of_year
+    } );
+}
+
+# NOTE encapsulation violation: _init is not part of the public
+# interface, but is used in the Date::Manip test suite.
+foreach my $method ( qw{
+	_init
+	}, __date_manip_date_public_interface(),
+) {
+    __PACKAGE__->can( $method )
+	and next;
+    Date::Manip::Date->can( $method )
+	or next;
+    no strict qw{ refs };
+    *$method = sub {
+	my ( $self, @arg ) = @_;
+	return $self->dmd()->$method( @arg );
+    };
+}
+
 1;
 
 __END__
@@ -573,10 +636,23 @@ Date::ManipX::Almanac::Date - Methods for working with almanac dates
 
 =head1 DESCRIPTION
 
-This Perl module implements a subclass of
+This Perl module implements a version of
 L<Date::Manip::Date|Date::Manip::Date> that understands a selection of
 almanac events. These are implemented using the relevant
 L<Astro::Coord::ECI|Astro::Coord::ECI> classes.
+
+This module is B<not> an actual subclass of
+L<Date::Manip::Date|Date::Manip::Date>, but holds a C<Date::Manip::Date>
+object to perform a lot of the heavy lifting, and implements all its
+public methods, usually by delegating directly to C<Date::Manip::Date>.
+This implementation was chosen because various portions of the
+C<Date::Manip::Date> interface want an honest-to-God
+C<Date::Manip::Date> object, not a subclass. The decision to implement
+this way may be revisited if the situation warrants.
+
+In the meantime, be aware that if you are doing something like
+instantiating a L<Date::Manip::TZ|Date::Manip::TZ> from this object, you
+will have to use C<< $dmad->dmd() >>, not C<$dmad>.
 
 B<Note> that most almanac calculations are for a specific point on the
 Earth's surface. It would be nice to default this via the computer's
@@ -590,51 +666,88 @@ not implemented.
 
 =head1 METHODS
 
-This class provides no public methods of its own, but overrides the
-following L<Date::Manip::Date|Date::Manip::Date> methods.
+This class provides the following public methods which are either in
+addition to those provided by L<Date::Manip::Date|Date::Manip::Date> or
+provide additional functionality. Any C<Date::Manip::Date> methods not
+mentioned below should Just Work.
 
 =head2 new
 
  my $dmad = Date::ManipX::Almanac::Date->new();
 
-The arguments are the same as the superclass arguments, but
-L<CONFIGURATION|/CONFIGURATION> items specific to this class are
-supported.
+The arguments are the same as the L<Date::Manip::Date|Date::Manip::Date>
+C<new()> arguments, but L<CONFIGURATION|/CONFIGURATION> items specific
+to this class are supported.
+
+=head2 new_date
+
+ my $dmad_2 = $dmad->new_date();
+
+The arguments are the same as the L<Date::Manip::Date|Date::Manip::Date>
+C<new_date()> arguments, but L<CONFIGURATION|/CONFIGURATION> items
+specific to this class are supported.
+
+=head2 new_config
+
+ my $dmad = Date::ManipX::Almanac::Date->new_config();
+
+The arguments are the same as the L<Date::Manip::Date|Date::Manip::Date>
+C<new_config()> arguments, but L<CONFIGURATION|/CONFIGURATION> items
+specific to this class are supported.
+
+=head2 calc
+
+If the first argument is a C<Date::ManipX::Almanac::Date> object, it is
+replaced by the underlying C<Date::Manip::Date> object.
+
+=head2 cmp
+
+If the first argument is a C<Date::ManipX::Almanac::Date> object, it is
+replaced by the underlying C<Date::Manip::Date> object.
 
 =head2 config
 
  my $err = $dmad->config( ... );
 
-All superclass arguments are supported, plus those described under
-L<CONFIGURATION|/CONFIGURATION>, below.
+All L<Date::Manip::Date|Date::Manip::Date> arguments are supported, plus
+those described under L<CONFIGURATION|/CONFIGURATION>, below.
+
+=head2 dmd
+
+ my $dmd = $dmad->dmd();
+
+This method returns the underlying
+L<Date::Manip::Date|Date::Manip::Date> object.
 
 =head2 err
 
 This method returns a description of the most-recent error, or a false
 value if there is none. Errors detected in this package trump those in
-the superclass.
+L<Date::Manip::Date|Date::Manip::Date>.
 
 =head2 get_config
 
  my @config = $dmad->get_config( ... );
 
-All superclass arguments are supported, plus those described under
-L<CONFIGURATION|/CONFIGURATION>, below.
+All L<Date::Manip::Date|Date::Manip::Date> arguments are supported, plus
+those described under L<CONFIGURATION|/CONFIGURATION>, below.
 
 =head2 parse
 
  my $err = $dmad->parse( 'today sunset' );
 
-All superclass arguments are supported, plus those described under
-L<ALMANAC EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
+All L<Date::Manip::Date|Date::Manip::Date> strings are supported, plus
+those described under L<ALMANAC
+EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
 L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
 
 =head2 parse_time
 
  my $err = $dmad->parse_time( 'sunset' );
 
-All superclass arguments are supported, plus those described under
-L<ALMANAC EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
+All L<Date::Manip::Date|Date::Manip::Date> strings are supported, plus
+those described under L<ALMANAC
+EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
 L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
 
 =head1 CONFIGURATION

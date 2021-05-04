@@ -96,7 +96,7 @@ is $dmad->get_config( 'twilight' ), 'civil', q<Set twilight to 'civil'>;
 # DANGER WILL ROBINSON!
 # Encapsulation violation. This is NOT part of the public interface, and
 # may be changed without warning.
-is rad2deg( $dmad->_get_my_attr()->{config}{_twilight} ), -6,
+is rad2deg( $dmad->{config}{_twilight} ), -6,
     q<Set correct twilight in radians>;
 
 done_testing;
