@@ -45,9 +45,12 @@ sub mung_file {
 	'tests.pl' eq $_
 	    and $data =~ s/ \b use \s+ Date::ManipX::Almanac \b [^\n] \n \K /{
     no warnings qw{ redefine };
-    *Date::ManipX::Almanac::Date::__load_module = sub (*;\@) {
-	eval { Module::Load::load( \$_[0] ); 1 }
-	    or \$::ti->skip_all( "\$_[0] unavailable" );
+    *Date::ManipX::Almanac::Date::__load_language = sub {
+        my \$lang = lc \$_[0];
+	my \$mod = "Date::ManipX::Almanac::Lang::\$lang";
+	eval { Module::Load::load( \$mod ); 1 }
+	    or \$::ti->skip_all( "Language \$lang unavailable" );
+	return \$mod;
     };
 }
 /smx;

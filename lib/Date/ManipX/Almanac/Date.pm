@@ -179,9 +179,13 @@ sub _config_almanac_configfile {
 	my $base = $tz->base();
 	# NOTE encapsulation violation
 	local $base->{data}{sections}{almanac} = undef;
-	$tz->config( configfile => $val );
+	$rslt = $tz->config( configfile => $val )
+	    and return $rslt;
 	@almanac = @{ $base->{data}{sections}{almanac} || [] };
     }
+
+    $rslt = $self->_update_language()
+	and return $rslt;
 
     my %config = (
 	sky	=> \my @sky,
@@ -219,8 +223,8 @@ sub _config_almanac_default {
     %{ $self->{config} } = ();
     delete $self->{lang};
     my $rslt = $self->dmd()->config( $name, $val ) ||
+	$self->_update_language() ||
 	$self->_config_almanac_default_sky() ||
-	$self->_config_almanac_var_language( language => 'english' ) ||
 	$self->_config_almanac_var_twilight( twilight => 'civil' );
     return $rslt;
 }
@@ -240,23 +244,44 @@ sub _config_almanac_var_language {
     $rslt = $self->dmd()->config( $name, $val )
 	and return $rslt;
 
-    my $lang = lc $val;
+    return $self->_update_language();
+}
+
+sub _update_language {
+    my ( $self ) = @_;
+    my $lang = lc $self->get_config( 'language' );
 
     exists $self->{lang}
 	and $lang eq $self->{lang}
-	and return $rslt;
+	and return 0;
 
-    my $mod = "Date::ManipX::Almanac::Lang::$lang";
-    __load_module( $mod );	# Dies on error
+    my $mod = __load_language( $lang )
+	or do {
+	warn "ERROR: [language] invalid: $lang\n";
+	return 1;
+    };
+
     $self->{lang}{lang}			= $lang;
     $self->{lang}{mod}			= $mod;
     delete $self->{lang}{obj};
 
-    return $rslt;
+    return 0;
 }
 
-# We do this circumlocution so we can hook during testing if need be.
-*__load_module = Module::Load->can( 'load' );
+# We isolate this so we can hook it to something different during
+# testing if need be.
+sub __load_language {
+    my ( $lang ) = @_;
+
+    my $module = "Date::ManipX::Almanac::Lang::\L$lang";
+    local $@ = undef;
+    eval {
+	Module::Load::load( $module );
+	1;
+    } and return $module;
+    warn "ERROR: [language] invalid: $lang\n";
+    return 0;
+}
 
 sub _config_almanac_var_twilight {
     my ( $self, $name, $val ) = @_;
