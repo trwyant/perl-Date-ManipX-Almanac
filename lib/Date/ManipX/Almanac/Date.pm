@@ -178,10 +178,9 @@ sub _config_almanac_configfile {
 	my $tz = $self->dmd()->tz();
 	my $base = $tz->base();
 	# NOTE encapsulation violation
-	local $base->{data}{sections}{almanac} = undef;
+	local $base->{data}{sections}{almanac} = \@almanac;
 	$rslt = $tz->config( configfile => $val )
 	    and return $rslt;
-	@almanac = @{ $base->{data}{sections}{almanac} || [] };
     }
 
     $rslt = $self->_update_language()
