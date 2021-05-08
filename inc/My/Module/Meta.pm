@@ -127,7 +127,6 @@ sub requires {
 	'Date::Manip::Date'		=> 6,
 	'Module::Load'			=> 0,
 	'Scalar::Util'			=> 0,
-	'Unicode::Diacritic::Strip'	=> 0,
 	constant	=> 0,
 	parent		=> 0,
 	strict		=> 0,

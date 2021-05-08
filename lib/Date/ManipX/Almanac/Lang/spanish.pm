@@ -161,6 +161,14 @@ sub __ignore_after_re {
     return qr< \s* despues (?: \s* de )? (?: \s* l[ao]s )? >smxi;
 }
 
+# I threw in diareses for good measure, though I know of no use of these
+# in the limited vocabulary space we are dealing with.
+sub __normalize_capture {
+    my ( undef, undef, $capture ) = @_;
+    ( $capture = lc $capture ) =~ tr/áéíóúäëïöüñ/aeiouaeioun/;
+    return $capture;
+}
+
 1;
 
 __END__

@@ -6,7 +6,6 @@ use strict;
 use warnings;
 
 use Carp;
-use Unicode::Diacritic::Strip ();
 
 our $VERSION = '0.000_004';
 
@@ -138,7 +137,7 @@ sub __body_re {
     }
 
     my $name = $self->__body_re_from_name(
-	$self->__string_to_re( $body->get( 'name' ) ) );
+	$self->__string_to_re( body_name => $body->get( 'name' ) ) );
     return qr/ $name /smxi;
 }
 
@@ -189,7 +188,7 @@ sub __event_capture {
     my ( $self, undef, $interp_specific ) = @_;
     delete $self->{captured_event};
 
-    my %capture = map { $_ => $self->__string_to_key( $+{$_} ) }
+    my %capture = map { $_ => $self->__string_to_key( $_ => $+{$_} ) }
 	grep { defined $+{$_} } qw{ specific general detail qual };
 
     foreach (
@@ -350,6 +349,27 @@ sub __midnight {
 
 =begin comment
 
+=head2 __normalize_capture
+
+ my $normalized_capture = $dmad->__normalize_key( $capture_name, $capture_content );
+
+This method is called by L<__event_capture()|/__event_capture> when a
+string is captured.  The arguments are the capture name and its
+contents. The return is the contents normalized appropriately to the
+language.
+
+By default, it simply returns the capture buffer converted to lower
+case, but individual languages can override it to do things like strip
+diacriticals.
+
+=end comment
+
+=cut
+
+sub __normalize_capture { return lc $_[2] }
+
+=begin comment
+
 =head2 __parse_pre
 
  my ( $modified_string, $body, @event ) =
@@ -398,8 +418,7 @@ sub __parse_pre {
 	}
     }
 
-    my $match = Unicode::Diacritic::Strip::fast_strip( lc $string );
-    $match =~ s/ \s+ / /smxg;
+    ( my $match = $string ) =~ s/ \s+ / /smxg;
 
     foreach ( @{ $self->{_sky} } ) {
 	my ( $re, $body, @se ) = @{ $_ };
@@ -441,7 +460,7 @@ sub __season_to_detail {
 
 =begin comment
 
- my $key = $dmal->__string_to_key( $string );
+ my $key = $dmal->__string_to_key( $capture_name, $string );
 
 This method converts a string to an equivalent (for our purposes)
 hash key.
@@ -452,11 +471,9 @@ expression. This is done by:
 
 =over
 
-=item 1) Converting the string to lower case
+=item 1) Calling __normalize_capture()
 
-=item 2) Stripping diactiticals
-
-=item 3) Removing everything that is not a word character
+=item 2) Removing everything that is not a word character
 
 =back
 
@@ -465,19 +482,23 @@ expression. This is done by:
 =cut
 
 sub __string_to_key {
-    my ( undef, $string ) = @_;
-    my $key = Unicode::Diacritic::Strip::fast_strip( lc $string );
+    my ( $self, $name, $string ) = @_;
+    my $key = $self->__normalize_capture( $name, $string );
     $key =~ s/ \W+ //smxg;
     return $key;
 }
 
 =begin comment
 
- my $re_string = $dmal->__string_to_re( $string );
+ my $re_string = $dmal->__string_to_re( $name, $string );
 
 This method converts a string to an equivalent (for our purposes)
 regular expression. The return is a string, not a C<Regexp> object,
 though that is subject to change.
+
+The C<$name> object says what the string is used for, and is simply
+passed through to L<__normalize_capture()|/__normalize_capture>, which
+does most of the work.
 
 The idea is to mimic (probably badly) something like
 L<Unicode::Collate|Unicode::Collate> level C<1>, but in a regular
@@ -485,13 +506,11 @@ expression. This is done by:
 
 =over
 
-=item 1) Converting the string to lower case
+=item 1) Calling __normalize_capture()
 
-=item 2) Stripping diactiticals
+=item 2) Removing everything that is not a word character or a space
 
-=item 3) Removing everything that is not a word character or a space
-
-=item 4) Converting spaces to C<\s*>
+=item 3) Converting spaces to C<\s*>
 
 =back
 
@@ -500,8 +519,8 @@ expression. This is done by:
 =cut
 
 sub __string_to_re {
-    my ( undef, $string ) = @_;
-    my $re = Unicode::Diacritic::Strip::fast_strip( lc $string );
+    my ( $self, $name, $string ) = @_;
+    my $re = $self->__normalize_capture( $name, $string );
     $re =~ s/ [^\w\s]+ //smxg;
     $re =~ s/ \s+ /\\s*/smxg;
     return $re;
