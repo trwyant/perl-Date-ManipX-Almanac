@@ -12,7 +12,7 @@ use Date::Manip::Date;
 use Module::Load ();
 use Scalar::Util ();
 
-our $VERSION = '0.000_004';
+our $VERSION = '0.000_005';
 
 use constant REF_ARRAY	=> ref [];
 use constant REF_HASH	=> ref {};

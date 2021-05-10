@@ -1,3 +1,18 @@
+0.000_005	2021-05-09	T. R. Wyant
+    Remove dependency on Unicode::Diacritic::Strip.  Instead, provide a
+    Date::ManipX::Almanac::Lang method, __normalize_capture(). In ::Lang
+    itself it just converts to lower-case, but individual language
+    modules can override and implement as they see fit. The Spanish
+    module applies a tr/// to remove accents and diareses from vowels,
+    and convert enyay ("ñ") to enne ("n").
+
+    Reduce footprint of configfile encapsulation violation to one line
+    of code.
+
+    Fix language setting logic so that it works from a configuration
+    file. This was broken when I made Date::ManipX::Almanac::Date no
+    longer a subclass of Date::Manip::Date.
+
 0.000_004	2021-05-04	T. R. Wyant
     No longer a subclass of Date::Manip::Date.  Paradoxically, this
     turned out to be the best way to make the Date-Manip test suite pass
