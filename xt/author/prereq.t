@@ -10,11 +10,12 @@ eval {
     1;
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
+use lib qw{ inc };
+use My::Module::Meta;
+my $meta = My::Module::Meta->new();
+
 my $tpm = Test::Prereq::Meta->new(
-    accept	=> [ qw{
-	Astro::Coord::ECI::Star
-	Astro::Coord::ECI::VSOP87D::Venus
-	} ],
+    accept	=> [ $meta->optionals_for_testing() ],
 );
 
 $tpm->all_prereq_ok();

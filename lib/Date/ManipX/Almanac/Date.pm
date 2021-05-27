@@ -617,6 +617,14 @@ sub __date_manip_date_public_interface {
     } );
 }
 
+{
+    local $@ = undef;
+    *_my_set_subname = eval {
+	require Sub::Util;
+	Sub::Util->can( 'set_subname' );
+    } || sub { $_[1] };
+}
+
 # NOTE encapsulation violation: _init is not part of the public
 # interface, but is used in the Date::Manip test suite.
 foreach my $method ( qw{
@@ -628,10 +636,11 @@ foreach my $method ( qw{
     Date::Manip::Date->can( $method )
 	or next;
     no strict qw{ refs };
-    *$method = sub {
-	my ( $self, @arg ) = @_;
-	return $self->dmd()->$method( @arg );
-    };
+    *$method = _my_set_subname( $method => sub {
+	    my ( $self, @arg ) = @_;
+	    return $self->dmd()->$method( @arg );
+	},
+    );
 }
 
 1;
@@ -684,6 +693,17 @@ geolocation API, but for at least the immediate future you must specify
 it explicitly. Failure to do this will result in an exception from
 L<parse()|/parse> or L<parse_time()|/parse_time> if an almanac event was
 actually specified.
+
+B<Caveat:> The single known encapsulation violation in this
+implementation involves the implementation of the C<ConfigFile>
+configuration item. If this makes you nervous, you can avoid it by doing
+something like
+
+ $dmad->dmd()->configure( ConfigFile => $file_name );
+ $dmad->configure( Language => $dmad->dmd()->get_config( 'Language' ) );
+
+but of course this means you will need to set configuration items
+specific to this class some other way.
 
 The functional interface to L<Date::Manip::Date|Date::Manip::Date> is
 not implemented.
@@ -835,6 +855,10 @@ following strings for convenience: C<'civil'> (6 degrees); C<'nautical'>
 The default is civil twilight.
 
 =back
+
+B<Caveat:> The implementation of this configuration item involves the
+only known encapsulation violation in this package. See
+L<DESCRIPTION|/DESCRIPTION>, above, for details.
 
 =head2 Defaults
 
