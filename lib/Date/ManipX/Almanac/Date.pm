@@ -14,6 +14,7 @@ use Scalar::Util ();
 
 our $VERSION = '0.000_005';
 
+use constant DEFAULT_TWILIGHT	=> 'civil';
 use constant REF_ARRAY	=> ref [];
 use constant REF_HASH	=> ref {};
 use constant METERS_PER_KILOMETER	=> 1000;
@@ -59,6 +60,9 @@ sub _new {
 
     $self->get_config( 'sky' )
 	or $self->_config_almanac_default_sky();
+    defined $self->get_config( 'twilight' )
+	or $self->_config_almanac_var_twilight(
+	    twilight => DEFAULT_TWILIGHT );
 
     @args
 	and $self->parse( @args );
@@ -103,8 +107,12 @@ sub config {
 	state $config = {
 	    configfile	=> \&_config_almanac_configfile,
 	    defaults	=> \&_config_almanac_default,
+	    elevation	=> \&_config_almanac_var_elevation,
 	    language	=> \&_config_almanac_var_language,
+	    latitude	=> \&_config_almanac_var_latitude,
 	    location	=> \&_config_almanac_var_location,
+	    longitude	=> \&_config_almanac_var_longitude,
+	    name	=> \&_config_almanac_var_name,
 	    sky		=> \&_config_almanac_var_sky,
 	    twilight	=> \&_config_almanac_var_twilight,
 	};
@@ -135,10 +143,15 @@ sub get_config {
     my @rslt;
 
     foreach my $name ( @arg ) {
-	state $mine = { map { $_ => 1 } qw{ location sky twilight } };
-	push @rslt, $mine->{$name} ?
-	    $self->{config}{$name} :
-	    $self->dmd()->get_config( $name );
+	state $mine = { map { $_ => 1 } qw{
+	    elevation latitude location longitude name sky twilight } };
+	if ( $mine->{$name} ) {
+	    my $code = $self->can( "_get_config_$name" ) || sub {
+		$_[0]{config}{$name} };
+	    push @rslt, scalar $code->( $self );
+	} else {
+	    push @rslt, $self->dmd()->get_config( $name );
+	}
     }
 
     return 1 == @rslt ? $rslt[0] : @rslt;
@@ -186,33 +199,11 @@ sub _config_almanac_configfile {
     $rslt = $self->_update_language()
 	and return $rslt;
 
-    my %config = (
-	sky	=> \my @sky,
-    );
-
     while ( @almanac ) {
 	my ( $name, $val ) = splice @almanac, 0, 2;
-	if ( REF_ARRAY eq ref $config{$name} ) {
-	    push @{ $config{$name} }, $val;
-	} else {
-	    $config{$name} = $val;
-	}
+	$rslt = $self->config( $name, $val )
+	    and return $rslt;
     }
-    delete $config{sky};
-
-    $self->_config_almanac_var_twilight(
-	twilight	=> delete $config{twilight},
-    );
-
-    keys %config
-	and $rslt = $self->_config_almanac_var_location(
-	    location => \%config,
-	)
-	and return $rslt;
-
-    @sky
-	and $rslt = $self->_config_almanac_var_sky( sky => \@sky )
-	and return $rslt;
 
     return $rslt;
 }
@@ -224,7 +215,7 @@ sub _config_almanac_default {
     my $rslt = $self->dmd()->config( $name, $val ) ||
 	$self->_update_language() ||
 	$self->_config_almanac_default_sky() ||
-	$self->_config_almanac_var_twilight( twilight => 'civil' );
+	$self->_config_almanac_var_twilight( twilight => DEFAULT_TWILIGHT );
     return $rslt;
 }
 
@@ -352,35 +343,53 @@ sub _config_var_is_eci_class {
     return;
 }
 
+sub _config_almanac_var_elevation {
+    my ( $self, $name, $val ) = @_;
+    if ( defined $val &&
+	Astro::Coord::ECI::Utils::looks_like_number( $val ) ) {
+	$self->{config}{$name} = $val;
+	delete $self->{config}{location};
+	return;
+    } else {
+	return $self->_my_config_err( "\u$name must be a number" );
+    }
+}
+
+sub _config_almanac_var_latitude {
+    my ( $self, $name, $val ) = @_;
+    if ( defined $val &&
+	Astro::Coord::ECI::Utils::looks_like_number( $val ) &&
+	$val >= -90 && $val <= 90 ) {
+	$self->{config}{$name} = $val;
+	delete $self->{config}{location};
+	return;
+    } else {
+	return $self->_my_config_err(
+	    "\u$name must be a number between -90 and 90 degrees" );
+    }
+}
+
 sub _config_almanac_var_location {
     my ( $self, $name, $val ) = @_;
     my $loc;
     if ( ! defined $val ) {
 	$loc = undef;
-    } elsif ( REF_HASH eq ref $val ) {
-	defined $val->{latitude}
-	    and defined $val->{longitude}
-	    or return $self->_my_config_err(
-	    'Location hash must specify both latitude and longitude' );
-	$loc = Astro::Coord::ECI->new();
-	defined $val->{name}
-	    and $loc->set( name => $val->{name} );
-	$loc->geodetic(
-	    Astro::Coord::ECI::Utils::deg2rad( $val->{latitude} ),
-	    Astro::Coord::ECI::Utils::deg2rad( $val->{longitude} ),
-	    ( $val->{elevation} || 0 ) / METERS_PER_KILOMETER,
-	);
+	delete @{ $self->{config} }{
+	    qw{ elevation latitude longitude name } };
     } else {
 	$loc = $self->_config_var_is_eci_class( $name, $val )
 	    or return 1;
+	my ( $lat, $lon, $ele ) = $loc->geodetic();
+	$self->{config}{elevation} = $ele * METERS_PER_KILOMETER;
+	$self->{config}{latitude} = Astro::Coord::ECI::Utils::rad2deg( $lat );
+	$self->{config}{longitude} = Astro::Coord::ECI::Utils::rad2deg( $lon );
+	$self->{config}{name} = $loc->get( 'name' );
     }
 
     defined $self->{config}{_twilight}
 	and defined $loc
 	and $loc->set( twilight => $self->{config}{_twilight} );
-    foreach my $obj ( @{ $self->{config}{sky} } ) {
-	$obj->set( station => $loc );
-    }
+    $_->set( station => $loc ) for @{ $self->{config}{sky} || [] };
     $self->{config}{location} = $loc;
 
     # NOTE we do this because when the Lang object initializes itself it
@@ -393,20 +402,47 @@ sub _config_almanac_var_location {
     return;
 }
 
+sub _config_almanac_var_longitude {
+    my ( $self, $name, $val ) = @_;
+    if ( defined $val &&
+	Astro::Coord::ECI::Utils::looks_like_number( $val ) &&
+	$val >= -180 && $val <= 180 ) {
+	$self->{config}{$name} = $val;
+	delete $self->{config}{location};
+	return;
+    } else {
+	return $self->_my_config_err(
+	    "\u$name must be a number between -180 and 180 degrees" );
+    }
+}
+
+sub _config_almanac_var_name {
+    my ( $self, $name, $val ) = @_;
+    if ( defined $val ) {
+	$self->{config}{$name} = $val;
+    } else {
+	delete $self->{config}{$name};
+    }
+    delete $self->{config}{location};
+    return;
+}
+
 sub _config_almanac_var_sky {
     my ( $self, $name, $values ) = @_;
 
-    ref $values
-	or $values = [ $values ];
-
     my @sky;
+    unless ( ref $values ) {
+	$values = [ $values ];
+	@sky = @{ $self->{config}{sky} || [] };
+    }
+
     foreach my $val ( @{ $values } ) {
 	my $body = $self->_config_var_is_eci_class( $name, $val )
 	    or return 1;
 	push @sky, $body;
-	$self->{config}{location}
-	    and $sky[-1]->set(
-		station => $self->{config}{location} );
+	if ( my $loc = $self->_get_config_location() ) {
+	    $sky[-1]->set( station => $loc );
+	}
     }
 
     @{ $self->{config}{sky} } = @sky;
@@ -416,6 +452,37 @@ sub _config_almanac_var_sky {
     delete $self->{lang}{obj};
 
     return;
+}
+
+sub _get_config_location {
+    my ( $self ) = @_;
+    my $cfg = $self->{config}
+	or return;
+    $cfg->{location}
+	and return $cfg->{location};
+    defined $cfg->{latitude}
+	and defined $cfg->{longitude}
+	or return;
+    my $loc = Astro::Coord::ECI->new();
+    defined $cfg->{name}
+	and $loc->set( name => $cfg->{name} );
+    defined $cfg->{_twilight}
+	and $loc->set( twilight => $cfg->{_twilight} );
+    $loc->geodetic(
+	Astro::Coord::ECI::Utils::deg2rad( $cfg->{latitude} ),
+	Astro::Coord::ECI::Utils::deg2rad( $cfg->{longitude} ),
+	( $cfg->{elevation} || 0 ) / METERS_PER_KILOMETER,
+    );
+    $_->set( station => $loc ) for @{ $self->{config}{sky} || [] };
+
+    # NOTE we do this because when the Lang object initializes itself it
+    # consults the first sky object's station attribute (set above) to
+    # figure out whether it is in the Northern or Southern hemisphere.
+    # The object will be re-created when we actually try to perform a
+    # parse.
+    delete $self->{lang}{obj};
+
+    return( $cfg->{location} = $loc );
 }
 
 sub _get_twilight_qual {
@@ -489,7 +556,7 @@ sub __parse_post {
 	and defined $event
 	or return;
 
-    $self->{config}{location}
+    $self->_get_config_location()
 	or return $self->_set_err( "[parse] Location not configured" );
 
     my $code = $self->can( "__parse_post__$event" )
@@ -657,12 +724,10 @@ Date::ManipX::Almanac::Date - Methods for working with almanac dates
  
  my $dmad = Date::ManipX::Almanac::Date->new();
  $dmad->config(
-   location => {
-     latitude  =>  38.8987,     # Degrees; south is negative
-     longitude => -77.0377,     # Degrees; west is negative
-     elevation =>  17,          # Meters, defaults to 0
-     name      =>  'White House', # Optional
-   },
+   latitude  =>  38.8987,     # Degrees; south is negative
+   longitude => -77.0377,     # Degrees; west is negative
+   elevation =>  17,          # Meters, defaults to 0
+   name      =>  'White House', # Optional
  );
  $dmad->parse( 'sunrise today' );
  $dmad->printf( 'Sunrise on %d-%b-%Y is %H:%M:%S' );
@@ -801,60 +866,8 @@ but adds or modifies the following configuration items:
 
 =head2 ConfigFile
 
-This class adds section C<*almanac>. The following items may be
-specified in that section:
-
-=over
-
-=item elevation
-
-This is the elevation above sea level of the location, in meters. If
-omitted, it defaults to C<0>.
-
-=item latitude
-
-This is the latitude of the location in decimal degrees. Latitudes south
-are negative.
-
-=item longitude
-
-This is the longitude of the location in decimal degrees. Longitudes west
-are negative.
-
-=item name
-
-This is the name of the location. It is optional, and is unused by this
-package.
-
-=item sky
-
-This specifies the class name of an astronomical body to be included in
-the almanac. It can be specified more than once, so
-
- sky = Astro::Coord::ECI::Sun
- sky = Astro::Coord::ECI::Moon
-
-specifies that both Sun and Moon be included.
-
-In general, only classes that can fully initialize themselves will work
-here. There is special-case code for
-L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star>, though, that lets
-you specify the name of the star, its right ascension (in
-hours:minutes:seconds) and declination (in decimal degrees), and
-optionally its distance in parsecs. So you can configure (for example)
-
- sky = Astro::Coord::ECI::Star Arcturus 14:15:39.67207 +19.182409
-
-=item twilight
-
-This specifies how far the Sun is below the horizon at the beginning or
-end of twilight. You can specify this in degrees, or as one of the
-following strings for convenience: C<'civil'> (6 degrees); C<'nautical'>
-(12 degrees); or C<'astronomical'> (18 degrees).
-
-The default is civil twilight.
-
-=back
+This class adds section C<*almanac>. Only configuration items specific
+to this package should be configured in this section.
 
 B<Caveat:> The implementation of this configuration item involves the
 only known encapsulation violation in this package. See
@@ -867,6 +880,15 @@ and populates the sky with
 L<Astro::Coord::ECI::Sun|Astro::Coord::ECI::Sun> and
 L<Astro::Coord::ECI::Moon|Astro::Coord::ECI::Moon>.
 
+=head2 Elevation
+
+This specifies the elevation of the location, in meters above sea level.
+
+=head2 Latitude
+
+This specifies the latitude of the location, in degrees north (positive)
+or south (negative) of the Equator.
+
 =head2 Language
 
 In addition to its action on the superclass, this loads the almanac
@@ -877,30 +899,60 @@ subclass has been implemented for the language.
 =head2 Location
 
 This specifies the location for which to compute the almanac. This can
-be specified as:
+be specified as an L<Astro::Coord::ECI|Astro::Coord::ECI> object, or
+C<undef> to clear the location. Setting or clearing this also sets or
+clears L<Elevation|/Elevation>, L<Latitude|/Latitude>,
+L<Longitude|/Longitude>, and L<Name|/Name>.
+
+=head2 Longitude
+
+This specifies the longitude of the location, in degrees east (positive)
+or west (negative) of Greenwich.
+
+=head2 Name
+
+This specifies the name of the location. The name is used for display
+only, and is optional.
+
+=head2 Sky
+
+This can be specified as:
 
 =over
 
-=item an Astro::Coord::ECI object
+=item * An L<Astro::Coord::ECI|Astro::Coord::ECI> object (or subclass).
 
-=item a hash reference
+This is appended to the configured objects in the sky.
 
-This hash must contain keys C<latitude> and C<longitude> (in decimal
-degrees, with south and west negative). It may also contain keys
-C<elevation> (in meters, defaulting to C<0>) and C<name> (set, but
-unused by this package).
+=item * The name of an L<Astro::Coord::ECI|Astro::Coord::ECI> class.
 
-=item undef
+This class is instantiated, and the resultant object appended to the
+configured objects in the sky.
 
-This clears the location.
+In general, you can only usefully specify objects this way if they can
+be instantiated by a call to C<new()>, without arguments.
+
+But there is a special case for
+L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star>. These can be
+specified by appending name, right ascension (in h:m:s), declination (in
+degrees), and optionally range in parsecs. The appended fields are
+space-delimited, so that you can not specify stars whose names contain
+spaces (e.g. C<'Deneb al Geidi'>).
+
+=item * A reference to an array of the above
+
+The contents of the array replace the previously-configured sky.
 
 =back
 
-=head2 sky
+=head2 Twilight
 
-This is a reference to an array containing zero or more class names or
-instantiated objects. These replace whatever objects were previously
-configured.
+This specifies how far the Sun is below the horizon at the beginning or
+end of twilight. You can specify this in degrees, or as one of the
+following strings for convenience: C<'civil'> (6 degrees); C<'nautical'>
+(12 degrees); or C<'astronomical'> (18 degrees).
+
+The default is civil twilight.
 
 =head1 SEE ALSO
 

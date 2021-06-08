@@ -25,20 +25,24 @@ my $loc = Astro::Coord::ECI->new(
 my $dmad = CLASS->new();
 
 foreach my $station (
-    $loc,
-    {
+    [ location	=> $loc ],
+    [
 	latitude	=> 38.8987,	# South is negative
 	longitude	=> -77.0377,	# West is negative
 	elevation	=> 17,	# Meters
 	name		=> 'White House',
-    },
+    ],
 ) {
-    note 'Configure location with ', ref $station;
-    $dmad->config( location => $station );
+    note 'Configure location with ', ref $station->[1] ? 'object' : 'coordinates';
+    $dmad->config( @{ $station } );
 
     my $got_loc = $dmad->get_config( 'location' );
     isa_ok $got_loc, ref $loc;
     is [ $got_loc->geodetic() ], [ $loc->geodetic() ], 'Correct location';
+    is $dmad->get_config( 'latitude' ), 38.8987, 'Correct latitude';
+    is $dmad->get_config( 'longitude' ), -77.0377, 'Correct longitude';
+    is $dmad->get_config( 'elevation' ), 17, 'Correct elevation';
+    is $dmad->get_config( 'name' ), 'White House', 'Correct name';
 }
 
 my $sky = $dmad->get_config( 'sky' );
@@ -90,13 +94,13 @@ SKIP: {
     isa_ok $sky2->[$_], ref $sky->[$_] for 0 .. $#$sky;
 }
 
-is $dmad->get_config( 'twilight' ), undef, 'Default twilight is undef';
-$dmad->config( twilight => 'civil' );
-is $dmad->get_config( 'twilight' ), 'civil', q<Set twilight to 'civil'>;
+is $dmad->get_config( 'twilight' ), 'civil', q<Default twilight is 'civil'>;
+$dmad->config( twilight => 'nautical' );
+is $dmad->get_config( 'twilight' ), 'nautical', q<Set twilight to 'nautical'>;
 # DANGER WILL ROBINSON!
 # Encapsulation violation. This is NOT part of the public interface, and
 # may be changed without warning.
-is rad2deg( $dmad->{config}{_twilight} ), -6,
+is rad2deg( $dmad->{config}{_twilight} ), -12,
     q<Set correct twilight in radians>;
 
 done_testing;
