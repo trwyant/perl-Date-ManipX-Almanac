@@ -1,3 +1,15 @@
+0.000_006	2021-06-09	T. R. Wyant
+    New config item AlmanacConfigFile.  This makes configuring the date
+    class non-transparent, but it is anyway because of the need to
+    configure a location. And it lets me get rid of the only known
+    encapsulation violation.
+
+    Make longitude (etc) first-class config items.  Setting location
+    sets these too. Setting these clears location, which is
+    reconstituted when needed.
+
+    Set names of generated methods if Sub::Util is available.
+
 0.000_005	2021-05-09	T. R. Wyant
     Remove dependency on Unicode::Diacritic::Strip.  Instead, provide a
     Date::ManipX::Almanac::Lang method, __normalize_capture(). In ::Lang

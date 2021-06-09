@@ -12,7 +12,7 @@ use Date::Manip::Date;
 use Module::Load ();
 use Scalar::Util ();
 
-our $VERSION = '0.000_005';
+our $VERSION = '0.000_006';
 
 use constant DEFAULT_TWILIGHT	=> 'civil';
 use constant REF_ARRAY	=> ref [];
