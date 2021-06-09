@@ -203,9 +203,11 @@ sub _config_almanac_config_file {
 	    # TODO retire exception for *almanac once I'm fully to new
 	    # config file structure.
 	    state $allow = { map { $_ => 1 } qw{ almanac } };
-	    $allow->{ lc $1 }
-		or return $self->_my_config_err(
-		"Section declaration '$name' not allowed in AlmanacConfigFile" );
+	    unless ( $allow->{ lc $1 } ) {
+		warn "WARNING: [almanac_config_file] section '$_' ",
+		    "not allowed in AlmanacConfigFile $fn line $.\n";
+		last;
+	    }
 	} else {
 	    if ( $name =~ m/ \A ConfigFile \z /smxi ) {
 		$config_file_processed = 1;
@@ -868,8 +870,9 @@ but adds or modifies the following configuration items:
 
 This specifies a configuration file. This is formatted like a
 L<Date::Manip|Date::Manip> file, but can not have sections or any of the
-configuration items allowed in them. This means you can not use it to
-define holidays or events.
+configuration items allowed in them. A L<Date::Manip|Date::Manip>-style
+section definition is treated as end-of-file, with a warning. This means
+you can not use C<AlmanacConfigFile> to define holidays or events.
 
 On the other hand, it can have any configuration items valid for this
 class, plus any valid in the top section of a L<Date::Manip|Date::Manip>
