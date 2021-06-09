@@ -105,7 +105,7 @@ sub config {
 	my ( $name, $val ) = splice @arg, 0, 2;
 
 	state $config = {
-	    configfile	=> \&_config_almanac_configfile,
+	    almanacconfigfile	=> \&_config_almanac_config_file,
 	    defaults	=> \&_config_almanac_default,
 	    elevation	=> \&_config_almanac_var_elevation,
 	    language	=> \&_config_almanac_var_language,
@@ -182,30 +182,41 @@ sub parse_time {
     return $self->dmd()->parse_time( $idate ) || $self->__parse_post( @event );
 }
 
-sub _config_almanac_configfile {
-    # my ( $self, $name, $val ) = @_;
-    my ( $self, undef, $val ) = @_;
-    my $rslt;
-    my @almanac;
-    {
-	my $tz = $self->dmd()->tz();
-	my $base = $tz->base();
-	# NOTE encapsulation violation
-	local $base->{data}{sections}{almanac} = \@almanac;
-	$rslt = $tz->config( configfile => $val )
-	    and return $rslt;
+sub _config_almanac_config_file {
+    # my ( $self, $name, $fn ) = @_;
+    my ( $self, undef, $fn ) = @_;
+    open my $fh, '<:encoding(utf-8)', $fn	## no critic (RequireBriefOpen)
+	or do {
+	warn "ERROR: [almanac_config_file] unable to open file $fn: $!";
+	return 1;
+    };
+    my $config_file_processed;
+    while ( <$fh> ) {
+	m/ \S /smx
+	    or next;
+	m/ \A \s* [#] /smx
+	    and next;
+	s/ \A \s+ //smx;
+	s/ \s+ \z //smx;
+	my ( $name, $val ) = split qr< \s* = \s* >smx, $_, 2;
+	if ( m/ \A [*] ( .* ) /smx ) {
+	    # TODO retire exception for *almanac once I'm fully to new
+	    # config file structure.
+	    state $allow = { map { $_ => 1 } qw{ almanac } };
+	    $allow->{ lc $1 }
+		or return $self->_my_config_err(
+		"Section declaration '$name' not allowed in AlmanacConfigFile" );
+	} else {
+	    if ( $name =~ m/ \A ConfigFile \z /smxi ) {
+		$config_file_processed = 1;
+	    } elsif ( $config_file_processed ) {
+		warn "Config item '$name' after ConfigFile in $fn line $.\n";
+	    }
+	    $self->config( $name, $val );
+	}
     }
-
-    $rslt = $self->_update_language()
-	and return $rslt;
-
-    while ( @almanac ) {
-	my ( $name, $val ) = splice @almanac, 0, 2;
-	$rslt = $self->config( $name, $val )
-	    and return $rslt;
-    }
-
-    return $rslt;
+    close $fh;
+    return;
 }
 
 sub _config_almanac_default {
@@ -234,6 +245,11 @@ sub _config_almanac_var_language {
     $rslt = $self->dmd()->config( $name, $val )
 	and return $rslt;
 
+    # FIXME Doing ourselves after the embedded DMD object can result in
+    # an inconsistency if DMD supports a language but we do not. But I
+    # see no way to avoid this in all cases, because the embedded object
+    # may have been configured in some way (such as a configuration
+    # file) that we can't intercept.
     return $self->_update_language();
 }
 
@@ -246,10 +262,7 @@ sub _update_language {
 	and return 0;
 
     my $mod = __load_language( $lang )
-	or do {
-	warn "ERROR: [language] invalid: $lang\n";
-	return 1;
-    };
+	or return 1;
 
     $self->{lang}{lang}			= $lang;
     $self->{lang}{mod}			= $mod;
@@ -562,8 +575,6 @@ sub __parse_post {
     my $code = $self->can( "__parse_post__$event" )
 	or confess "Bug - event $event not implemented";
 
-    $DB::single = 1;	# Debug
-
     # TODO support for systems that do not use this epoch.
     $body->universal( $self->secs_since_1970_GMT() );
 
@@ -759,17 +770,6 @@ it explicitly. Failure to do this will result in an exception from
 L<parse()|/parse> or L<parse_time()|/parse_time> if an almanac event was
 actually specified.
 
-B<Caveat:> The single known encapsulation violation in this
-implementation involves the implementation of the C<ConfigFile>
-configuration item. If this makes you nervous, you can avoid it by doing
-something like
-
- $dmad->dmd()->configure( ConfigFile => $file_name );
- $dmad->configure( Language => $dmad->dmd()->get_config( 'Language' ) );
-
-but of course this means you will need to set configuration items
-specific to this class some other way.
-
 The functional interface to L<Date::Manip::Date|Date::Manip::Date> is
 not implemented.
 
@@ -864,14 +864,40 @@ L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
 This class uses the L<Date::Manip|Date::Manip> C<config()> interface,
 but adds or modifies the following configuration items:
 
+=head2 AlmanacConfigFile
+
+This specifies a configuration file. This is formatted like a
+L<Date::Manip|Date::Manip> file, but can not have sections or any of the
+configuration items allowed in them. This means you can not use it to
+define holidays or events.
+
+On the other hand, it can have any configuration items valid for this
+class, plus any valid in the top section of a L<Date::Manip|Date::Manip>
+configuration file.
+
+Specifically, you can include other configuration files, via either
+C<AlmanacConfigFile> or C<ConfigFile>. Files included by C<ConfigFile>
+can include anything a L<Date::Manip|Date::Manip> config file can
+(including event and holiday sections), but nothing specific to
+L<Date::ManipX::Almanac|Date::ManipX::Almanac>.
+
 =head2 ConfigFile
 
-This class adds section C<*almanac>. Only configuration items specific
-to this package should be configured in this section.
+This only modifies the embedded L<Date::Manip::Date|Date::Manip::Date>
+object, though after all the dust settles the language of the embedded
+object is retrieved.
 
-B<Caveat:> The implementation of this configuration item involves the
-only known encapsulation violation in this package. See
-L<DESCRIPTION|/DESCRIPTION>, above, for details.
+B<Caveat:> It appears to be a restriction in
+L<Date::Manip::Date|Date::Manip::Date> that if you configure (at least)
+L<Language|/Language> after configuring a C<ConfigFile>, any events
+and/or holidays configured by the nested file will not be parsed. This
+makes sense when you think about it, because if you configure
+
+ December 25 = Christmas
+
+and then change the language to Spanish, you still can't say
+C<'mediodia Navidad'> unless you load a new holiday definition that
+supports this.
 
 =head2 Defaults
 

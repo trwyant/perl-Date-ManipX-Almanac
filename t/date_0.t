@@ -64,8 +64,8 @@ is $dmad->get_config( 'location' ), undef, 'Cleared the location';
 ok !$dmad->config( sky => [] ), 'Attempt to clear the sky succeeded';
 is scalar @{ $dmad->get_config( 'sky' ) }, 0, 'Cleared the sky';
 
-ok ! $dmad->config( ConfigFile => TEST_CONFIG_FILE ),
-    qq{config( ConfigFile => '@{[ TEST_CONFIG_FILE ]}' )};
+ok ! $dmad->config( AlmanacConfigFile => TEST_CONFIG_FILE ),
+    qq{config( AlmanacConfigFile => '@{[ TEST_CONFIG_FILE ]}' )};
 $sky = $dmad->get_config( 'sky' );
 if ( NO_STAR ) {
     is scalar @{ $sky }, 2, 'Sky contains two bodies';

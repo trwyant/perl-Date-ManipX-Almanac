@@ -14,9 +14,9 @@ use Test2::V0 -target => 'Date::ManipX::Almanac::Date';
 use lib qw{ inc };
 use My::Module::Test;
 
-my $dmad = CLASS->new( [ ConfigFile => TEST_CONFIG_FILE ] );
+my $dmad = CLASS->new( [ AlmanacConfigFile => TEST_CONFIG_FILE ] );
 
-$dmad->config(	# ConfigFile sets English
+$dmad->config(	# AlmanacConfigFile sets English
     language	=> 'Spanish',
 );
 

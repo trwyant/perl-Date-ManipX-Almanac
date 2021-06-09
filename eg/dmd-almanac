@@ -17,24 +17,31 @@ use Pod::Usage;
 our $VERSION = '0.000_005';
 
 my %opt = (
-    configfile	=> "$Bin/@{[ basename( $0 ) ]}.config",
-    format	=> '%d-%b-%Y %H:%M:%S',
+    almanacconfigfile	=> "$Bin/@{[ basename( $0 ) ]}.config",
+    format		=> '%d-%b-%Y %H:%M:%S',
 );
 
 @ARGV = map { decode( 'utf-8', $_ ) } @ARGV;
 
 GetOptions( \%opt,
-    qw{ configfile=s format=s gmt! language=s twilight=s value! },
+    qw{
+	almanacconfigfile|almanac-config-file|configfile|config-file=s
+	format=s gmt! language=s twilight=s value!
+    },
     help => sub { pod2usage( { -verbose => 2 } ) },
 ) and @ARGV or pod2usage( { -verbose => 0 } );
 
--e $opt{configfile}
-    or die "Config file $opt{configfile} not found\n";
+-e $opt{almanacconfigfile}
+    or die "Almanac config file $opt{almanacconfigfile} not found\n";
 
 my $dmad = Date::ManipX::Almanac::Date->new();
-foreach my $name ( qw{ configfile language twilight } ) {
+# NOTE that the configuration file needs to be handled after (at least)
+# language, because setting the language clobbers any holiday
+# descriptions that may have been loaded.
+foreach my $name ( qw{ language twilight almanacconfigfile } ) {
     defined $opt{$name}
-	and $dmad->config( $name => $opt{$name} )
+	or next;
+    $dmad->config( $name => $opt{$name} )
 	and die $dmad->err();
 }
 
@@ -42,7 +49,7 @@ my $errs = 0;
 
 foreach my $date ( @ARGV ) {
     if ( $dmad->parse( $date ) ) {
-	warn $dmad->err(), " on '$date'\n";
+	warn $dmad->err(), " '$date'\n";
 	$errs++;
     } else {
 	$opt{gmt}
@@ -52,7 +59,6 @@ foreach my $date ( @ARGV ) {
 	    $dmad->printf( $opt{format} );
     }
 }
-
 exit $errs;
 
 __END__
