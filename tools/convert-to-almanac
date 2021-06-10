@@ -40,8 +40,12 @@ sub mung_file {
 	and return;
     {
 	no warnings qw{ uninitialized };
+
 	$data =~ s/ \b Date::Manip \K ( ::Date )? \b (?! : ) /X::Almanac$1/smxg
 	    or return;
+
+	$data =~ s/ \$ \w+ \K (?= ->_init \b ) /->dmd()/smxg;
+
 	'tests.pl' eq $_
 	    and $data =~ s/ \b use \s+ Date::ManipX::Almanac \b [^\n] \n \K /{
     no warnings qw{ redefine };
@@ -117,6 +121,8 @@ This modification consists of:
 =item * Replacing 'Date::Manip' with 'Date::ManipX::Almanac';
 
 =item * Replacing 'Date::Manip::Date' with 'Date::ManipX::Almanac::Date';
+
+=item * Replacing '->_init()' with '->dmd()->_init()';
 
 =item * Patching tests.pl to turn language load failure into skip_all;
 

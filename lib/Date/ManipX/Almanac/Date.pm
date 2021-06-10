@@ -705,12 +705,7 @@ sub __date_manip_date_public_interface {
     } || sub { $_[1] };
 }
 
-# NOTE encapsulation violation: _init is not part of the public
-# interface, but is used in the Date::Manip test suite.
-foreach my $method ( qw{
-	_init
-	}, __date_manip_date_public_interface(),
-) {
+foreach my $method ( __date_manip_date_public_interface() ) {
     __PACKAGE__->can( $method )
 	and next;
     Date::Manip::Date->can( $method )
