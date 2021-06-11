@@ -23,7 +23,7 @@ __END__
 
 =head1 NAME
 
-Date::ManipX::Almanac - Add almanac date/time functionality to Date::Manip 
+Date::ManipX::Almanac - Add almanac date/time functionality (sunrise, etc.) to Date::Manip 
 
 =head1 SYNOPSIS
 
