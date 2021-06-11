@@ -25,6 +25,8 @@ sub __body_data {
 		(?<detail> end ) (?: ing )? (?: \s* of )? \s*
 		    (?<qual> astronomical | civil | nautical )? \s*
 		    (?<specific> twilight ) |
+		(?<qual> astronomical | civil | nautical )? \s*
+		    (?<specific> twilight ) \s* (?<detail> begin | end ) s? |
 		(?<detail> morning | evening ) \s*
 		    (?<qual> astronomical | civil | nautical )? \s*
 		    (?<specific> twilight ) |
@@ -275,8 +277,12 @@ The word C<'the'> is optional.
 
  begin twilight
  the beginning of twilight
+ twilight begins
+ morning twilight
  end twilight
  the ending of twilight
+ twilight ends
+ evening twilight
 
 This implies the Sun, and specifies the time the center of the Sun
 passes above (C<'begin'>) or below (C<'end'>) the twilight setting of
