@@ -17,7 +17,7 @@ use Pod::Usage;
 our $VERSION = '0.000_006';
 
 my %opt = (
-    almanacconfigfile	=> "$Bin/@{[ basename( $0 ) ]}.config",
+    almanacconfigfile	=> "$Bin/@{[ basename( $0 ) ]}.cfg",
     format		=> '%d-%b-%Y %H:%M:%S',
 );
 
@@ -44,6 +44,15 @@ foreach my $name ( qw{ language twilight almanacconfigfile } ) {
     $dmad->config( $name => $opt{$name} )
 	and die $dmad->err();
 }
+
+if ( my $sta = $dmad->get_config( 'location' ) ) {
+    if ( my $name = $sta->get( 'name' ) ) {
+	say $name;
+    }
+} else {
+    die "ERROR: no location specified in config file.\n";
+}
+
 
 my $errs = 0;
 
@@ -75,14 +84,18 @@ dmd-almanac - Parse dates using Date::ManipX::Almanac::Date
 
 =head1 OPTIONS
 
-=head2 --configfile
+=head2 --almanac-config-file
 
- --configfile .dmd-almanacrc
+ --almanac-config-file .dmd-almanacrc
 
 This option specifies the configuration file to read.
 
-The default is F<dmd-almanac.config> in the same directory as this
+The default is F<dmd-almanac.cfg> in the same directory as this
 script.
+
+=head2 --config-file
+
+This is a synonym for L<--almanac-config-file|/--almanac-config-file>.
 
 =head2 --format
 

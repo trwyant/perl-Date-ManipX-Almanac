@@ -38,8 +38,8 @@ BEGIN {
 }
 
 use constant TEST_CONFIG_FILE => NO_STAR ?
-    't/data/white-house.config' :
-    't/data/white-house-with-star.config';
+    't/data/white-house.cfg' :
+    't/data/white-house-with-star.cfg';
 
 sub parsed_value {
     my ( $obj, $string ) = @_;

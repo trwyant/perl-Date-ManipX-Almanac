@@ -1,7 +1,7 @@
 Build.PL
 Changes
 eg/dmd-almanac
-eg/dmd-almanac.config
+eg/dmd-almanac.cfg
 inc/My/Module/Build.pm
 inc/My/Module/Meta.pm
 inc/My/Module/Test.pm
@@ -17,8 +17,8 @@ META.json
 META.yml
 README
 t/basic.t
-t/data/white-house.config
-t/data/white-house-with-star.config
+t/data/white-house.cfg
+t/data/white-house-with-star.cfg
 t/date_0.t
 t/date_english.t
 tools/My/Symdump.pm
