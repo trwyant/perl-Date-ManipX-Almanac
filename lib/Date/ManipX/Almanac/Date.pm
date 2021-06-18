@@ -743,7 +743,7 @@ Date::ManipX::Almanac::Date - Methods for working with almanac dates
 =head1 DESCRIPTION
 
 This Perl module implements a version of
-L<Date::Manip::Date|Date::Manip::Date> that understands a selection of
+L<Date::Manip::Date|Date::Manip::Date> that can parse a selection of
 almanac events. These are implemented using the relevant
 L<Astro::Coord::ECI|Astro::Coord::ECI> classes.
 
@@ -768,7 +768,8 @@ L<parse()|/parse> or L<parse_time()|/parse_time> if an almanac event was
 actually specified.
 
 The functional interface to L<Date::Manip::Date|Date::Manip::Date> is
-not implemented.
+not implemented. Neither is L<Date::Manip::DM5|Date::Manip::DM5>
+functionality.
 
 =head1 METHODS
 
@@ -843,8 +844,8 @@ those described under L<CONFIGURATION|/CONFIGURATION>, below.
  my $err = $dmad->parse( 'today sunset' );
 
 All L<Date::Manip::Date|Date::Manip::Date> strings are supported, plus
-those described under L<ALMANAC
-EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
+those described under
+L<ALMANAC EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
 L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
 
 =head2 parse_time
@@ -852,8 +853,8 @@ L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
  my $err = $dmad->parse_time( 'sunset' );
 
 All L<Date::Manip::Date|Date::Manip::Date> strings are supported, plus
-those described under L<ALMANAC
-EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
+those described under
+L<ALMANAC EVENTS|Date::ManipX::Almanac::Lang/ALMANAC EVENTS> in
 L<Date::ManipX::Almanac::Lang|Date::ManipX::Almanac::Lang>.
 
 =head1 CONFIGURATION
@@ -888,7 +889,7 @@ object is retrieved.
 B<Caveat:> It appears to be a restriction in
 L<Date::Manip::Date|Date::Manip::Date> that if you configure (at least)
 L<Language|/Language> after configuring a C<ConfigFile>, any events
-and/or holidays configured by the nested file will not be parsed. This
+and/or holidays configured by the nested file will not be retained. This
 makes sense when you think about it, because if you configure
 
  December 25 = Christmas
@@ -960,8 +961,8 @@ But there is a special case for
 L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star>. These can be
 specified by appending name, right ascension (in h:m:s), declination (in
 degrees), and optionally range in parsecs. The appended fields are
-space-delimited, so that you can not specify stars whose names contain
-spaces (e.g. C<'Deneb al Geidi'>).
+space-delimited, so that you can not (currently) specify stars whose
+names contain spaces (e.g. C<'Deneb al Geidi'>).
 
 =item * A reference to an array of the above
 
