@@ -11,6 +11,7 @@ use Carp;
 use Date::Manip::Date;
 use Module::Load ();
 use Scalar::Util ();
+use Text::ParseWords ();
 
 our $VERSION = '0.000_006';
 
@@ -333,7 +334,7 @@ sub _config_var_is_eci_class {
     $rslt = $self->_config_var_is_eci( $name, $val )
 	and return $rslt;
     if ( ! ref $val ) {
-	my ( $class, @arg ) = split qr/ \s+ /smx, $val;
+	my ( $class, @arg ) = Text::ParseWords::shellwords( $val );
 	Module::Load::load( $class );
 	state $factory = {
 	    'Astro::Coord::ECI::Star'	=> sub {
@@ -447,8 +448,13 @@ sub _config_almanac_var_sky {
 
     my @sky;
     unless ( ref $values ) {
-	$values = [ $values ];
-	@sky = @{ $self->{config}{sky} || [] };
+	if ( defined( $values ) && $values ne '' ) {
+	    $values = [ $values ];
+	    @sky = @{ $self->{config}{sky} || [] };
+	} else {
+	    $values = [];
+	    @{ $self->{config}{sky} } = ();
+	}
     }
 
     foreach my $val ( @{ $values } ) {
@@ -945,6 +951,10 @@ This can be specified as:
 
 =over
 
+=item * C<undef> or the empty string (C<''> ).
+
+The previously-configured sky is cleared.
+
 =item * An L<Astro::Coord::ECI|Astro::Coord::ECI> object (or subclass).
 
 This is appended to the configured objects in the sky.
@@ -961,12 +971,13 @@ But there is a special case for
 L<Astro::Coord::ECI::Star|Astro::Coord::ECI::Star>. These can be
 specified by appending name, right ascension (in h:m:s), declination (in
 degrees), and optionally range in parsecs. The appended fields are
-space-delimited, so that you can not (currently) specify stars whose
-names contain spaces (e.g. C<'Deneb al Geidi'>).
+parsed using C<Text::ParseWords::shellwords()>, so star names containing
+spaces can be either quoted (e.g. C<'Deneb Algedi'>) or
+reverse-solidus-escaped (e.g. C<Cor\ Caroli>).
 
 =item * A reference to an array of the above
 
-The contents of the array replace the previously-configured sky.
+The contents of the array B<replace> the previously-configured sky.
 
 =back
 

@@ -50,7 +50,7 @@ is scalar @{ $sky }, 2, 'Sky contains two bodies';
 isa_ok $sky->[0], 'Astro::Coord::ECI::Sun';
 isa_ok $sky->[1], 'Astro::Coord::ECI::Moon';
 
-ok !$dmad->config( sky => [] ), 'Attempt to clear the sky succeeded';
+ok !$dmad->config( sky => '' ), 'Attempt to clear the sky succeeded';
 is scalar @{ $dmad->get_config( 'sky' ) }, 0, 'Cleared the sky';
 
 ok ! $dmad->config( defaults => 1 ), 'config( defaults => 1 )';
