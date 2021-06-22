@@ -44,20 +44,25 @@ sub mung_file {
 	$data =~ s/ \b Date::Manip \K ( ::Date )? \b (?! : ) /X::Almanac$1/smxg
 	    or return;
 
-	$data =~ s/ \$ \w+ \K (?= ->_init \b ) /->dmd()/smxg;
-
 	'tests.pl' eq $_
-	    and $data =~ s/ \b use \s+ Date::ManipX::Almanac \b [^\n] \n \K /{
+	    and $data =~ s' \b use \s+ Date::ManipX::Almanac \b [^\n] \n \K '
+{
     no warnings qw{ redefine };
     *Date::ManipX::Almanac::Date::__load_language = sub {
-        my \$lang = lc \$_[0];
-	my \$mod = "Date::ManipX::Almanac::Lang::\$lang";
-	eval { Module::Load::load( \$mod ); 1 }
-	    or \$::ti->skip_all( "Language \$lang unavailable" );
-	return \$mod;
+        my $lang = lc $_[0];
+	my $mod = "Date::ManipX::Almanac::Lang::$lang";
+	eval { Module::Load::load( $mod ); 1 }
+	    or $::ti->skip_all( "Language $lang unavailable" );
+	return $mod;
     };
 }
-/smx;
+
+sub Date::ManipX::Almanac::Date::_init {
+    my ( $self, @arg ) = @_;
+    return $self->dmd()->_init( @arg );
+}
+
+'smx;
 	'obj.t' eq $_
 	    and $data =~ s/ \$type \s+ eq \s* 'TZ' [^\n]* \K \n /
 	 use Scalar::Util qw{ blessed };
