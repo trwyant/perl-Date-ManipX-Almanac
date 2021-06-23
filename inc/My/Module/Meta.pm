@@ -18,7 +18,7 @@ sub new {
 }
 
 sub abstract {
-    return 'Add almanac date/time functionality (sunrise, etc.) to Date::Manip ';
+    return 'Add almanac date/time functionality (sunrise, etc.) to Date::Manip';
 }
 
 sub add_to_cleanup {

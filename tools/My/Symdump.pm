@@ -93,7 +93,7 @@ maintain the L<Date::ManipX::Almanac|Date::ManipX::Almanac> package.
 
 =head1 METHODS
 
-This class supports the following public methods:
+This class supports the following methods:
 
 =head2 dmd_public_interface
 
@@ -133,10 +133,7 @@ L<Devel::Symdump|Devel::Symdump>, which does the heavy lifting.
 
 =head1 SUPPORT
 
-Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Date-ManipX-Almanac>,
-L<https://github.com/trwyant/perl-Date-ManipX-Almanac/issues/>, or in
-electronic mail to the author.
+This module is unsupported, and can be modified or revoked at any time.
 
 =head1 AUTHOR
 

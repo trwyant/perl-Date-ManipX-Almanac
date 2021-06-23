@@ -658,7 +658,7 @@ least), or 6 degrees below the horizon.
  local midnight
 
 This implies the Sun. The C<'local noon'> specification is equivalent to
-C<'sun culminates'>. 
+C<'sun culminates'>.
 
 =back
 

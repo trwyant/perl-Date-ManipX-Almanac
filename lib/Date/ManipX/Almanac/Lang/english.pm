@@ -301,7 +301,7 @@ The words C<'the'> and C<'of'> are optional.
  local midnight
 
 This implies the Sun. The C<'local noon'> specification is equivalent to
-C<'sun culminates'>. 
+C<'sun culminates'>.
 
 =back
 
