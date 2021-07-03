@@ -1,2 +1,9 @@
+0.000_902	2021-07-03	T. R. Wyant
+    Tweak t/basic.t to be (hopefully) more travis-friendly.
+
+    Add .travis.yml
+
+    Correct README.
+
 0.000_901	2021-07-03	T. R. Wyant
     Initial release to CPAN.

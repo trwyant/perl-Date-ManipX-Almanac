@@ -11,7 +11,7 @@ perl:
   - "5.34"
   - "5.30"
   - "5.14"
-  - "5.8"
+  - "5.10"
 
 # It appears that without travis-perl/helpers only perls 5.14
 # through 5.30 work.
