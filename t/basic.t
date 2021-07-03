@@ -12,9 +12,17 @@ load_module_ok 'Date::ManipX::Almanac::Lang';
 load_module_ok 'Date::ManipX::Almanac::Lang::english';
 
 SKIP: {
+    my $module = 'Date::ManipX::Almanac::Lang::spanish';
     $ENV{AUTHOR_TESTING}
-	or skip 'Date::ManipX::Almanac::Lang::spanish is unpublished', 1;
-    load_module_ok 'Date::ManipX::Almanac::Lang::spanish';
+	or skip "$module is unpublished", 1;
+    ( my $file = "blib/lib/$module.pm" ) =~ s<::></>smxg;
+    unless ( -e $file ) {
+	my $msg = "AUTHOR_TESTING set but unpublished $module not found";
+	diag $msg;
+	skip $msg, 1;
+    }
+
+    load_module_ok $module;
 }
 
 load_module_ok 'Date::ManipX::Almanac::Date';
