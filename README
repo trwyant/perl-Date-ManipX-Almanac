@@ -2,7 +2,7 @@ Date-ManipX-Almanac is Copyright (C) 2021 by Thomas R. Wyant, III
 
 DESCRIPTION
 
-Add almanac dates/times to Date::Manip
+Add almanac date/time functionality (sunrise, etc.) to Date::Manip
 
 INSTALLATION
 
@@ -33,7 +33,7 @@ ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe for a copy of
 nmake for MSWin32 if you need it.
 
 Of course, since it's pure Perl, you can just expand the kit and drop
-SpaceTrack.pm and the SpaceTrack folder into the Astro directory
+Almanac.pm and the Almanac folder into the Date-ManipX/ directory
 (creating it if necessary) in the appropriate place in your @INC
 directories.
 
