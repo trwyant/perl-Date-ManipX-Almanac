@@ -1,3 +1,6 @@
+0.000_903	2021-07-03	T. R. Wyant
+    Add tools/ to no_index directories.
+
 0.000_902	2021-07-03	T. R. Wyant
     Tweak t/basic.t to be (hopefully) more travis-friendly.
 
