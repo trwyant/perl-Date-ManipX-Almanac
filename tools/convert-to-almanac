@@ -127,8 +127,6 @@ This modification consists of:
 
 =item * Replacing 'Date::Manip::Date' with 'Date::ManipX::Almanac::Date';
 
-=item * Replacing '->_init()' with '->dmd()->_init()';
-
 =item * Patching tests.pl to turn language load failure into skip_all;
 
 =item * Patching obj.t to pass $date->dmd() to Date::Manip::TZ->new() where appropriate.
