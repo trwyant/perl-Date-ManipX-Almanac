@@ -88,11 +88,9 @@ sub module_name {
 }
 
 sub no_index {
-    return +[
-      'eg',
-      't',
-      'xt',
-    ];
+    return +{
+	directory	=> [ qw{ eg t tools xt } ],
+    };
 }
 
 sub optionals_for_testing {
