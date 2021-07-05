@@ -55,6 +55,8 @@ subtest q<Parse 'Arcturus sets'> => sub {
 is parsed_value( $dmad, 'Sunset 2021-04-01' ), '2021040123:32:04',
     q<Time of Sunset April 1 2021>;
 
+is $dmad->tz()->zone(), 'America/New_York', q<Zone is America/New_York>;
+
 is parsed_value( $dmad, '2021-04-01 rising of the sun' ), '2021040110:52:21',
     q<Time of Sunrise April 1 2021>;
 
