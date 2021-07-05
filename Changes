@@ -1,3 +1,6 @@
+0.000_905	2021-07-05	T. R. Wyant
+    Use explicit zone America/New_York for testing.
+
 0.000_904	2021-07-04	T. R. Wyant
     Further corrections to no_index and provides metadata
 
