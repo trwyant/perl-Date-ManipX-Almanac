@@ -13,7 +13,7 @@ use Module::Load ();
 use Scalar::Util ();
 use Text::ParseWords ();
 
-our $VERSION = '0.000_903';
+our $VERSION = '0.000_904';
 
 use constant DEFAULT_TWILIGHT	=> 'civil';
 use constant REF_ARRAY	=> ref [];
