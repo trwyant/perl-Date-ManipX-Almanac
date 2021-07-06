@@ -162,8 +162,8 @@ sub requires {
 	'Astro::Coord::ECI::Sun'	=> 0.119,	# For clone() to work
 	'Astro::Coord::ECI::Utils'	=> 0.119,	# For clone() to work
 	'Carp'				=> 0,
-	'Date::Manip'			=> 6,
-	'Date::Manip::Date'		=> 6,
+	'Date::Manip'			=> 6.55,	# For new_config()
+	'Date::Manip::Date'		=> 6.55,	# to work
 	'Module::Load'			=> 0,
 	'Scalar::Util'			=> 0,
 	'Text::ParseWords'		=> 0,
