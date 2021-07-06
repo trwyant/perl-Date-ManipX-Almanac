@@ -1,3 +1,6 @@
+0.000_906	2021-07-06	T. R. Wyant
+    Require Date::Manip 6.55 for new_config() to work.
+
 0.000_905	2021-07-05	T. R. Wyant
     Use explicit zone America/New_York for testing.
 
