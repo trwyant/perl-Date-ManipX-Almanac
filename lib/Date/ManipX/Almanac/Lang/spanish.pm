@@ -315,7 +315,7 @@ The words C<'la'>, C<'luna'>, C<'el'>, and C<'de'> are optional.
 =item Solar quarters
 
  el equinoccio de la primavera
- el equinoccio del otono
+ el equinoccio del otoño
  el equinoccio del marzo
  el equinoccio del seteiembre
  el equinoccio del septeiembre
