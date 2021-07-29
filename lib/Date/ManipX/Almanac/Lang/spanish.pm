@@ -20,7 +20,8 @@ sub __body_data {
     my ( $self ) = @_;
     my @season = $self->__season_to_detail();
     return [
-	[ 'Astro::Coord::ECI::Sun'	=> qr/ (?: d?el \s* )? sol /smxi,
+	[ 'Astro::Coord::ECI::Sun'	=>
+	    qr/ (?: (?: cuando | a ) \s* )? (?: d?el \s* )? sol /smxi,
 	    qr/
 		(?: a \s* )? (?: el \s* )?  (?<specific> crepusculo ) \s*
 		    (?<qual> astronomico | civil | maritimo | nautico )? \s*
@@ -82,7 +83,8 @@ sub __body_data {
 	    },
 	],
 	[ 'Astro::Coord::ECI::Moon'	=>
-	    qr/ (?: de \s* )? (?: la \s* )? luna /smxi,
+	    qr/ (?: (?: cuando | a ) \s* )?
+		(?: de \s* )? (?: la \s* )? luna /smxi,
 	    qr/
 		(?: el \s* )? (?<specific> (?: primer | ultimo ) ) \s* cuarto
 		    (?: \s* de )? (?: \s* la )? (?: \s* luna ) |
@@ -104,21 +106,21 @@ sub __body_data {
 	# NOTE we don't need the Sun here, because ::VSOP87D::Sun is a
 	# subclass of ::Sun.
 	[ 'Astro::Coord::ECI::VSOP87D::Mercury'	=>
-	    qr/ (?: d?el \s* )? mercurio /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? mercurio /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Venus'	=>
 	    # Sic: Collins says the planet Venus is masculine, even
 	    # though the mythological Venus is feminine
-	    qr/ (?: d?el \s* )? venus /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? venus /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Mars' =>
-	    qr/ (?: d?el \s* )? marte /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? marte /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Jupiter'	=>
-	    qr/ (?: d?el \s* )? jupiter /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? jupiter /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Saturn'	=>
-	    qr/ (?: d?el \s* )? saturno /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? saturno /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Uranus'	=>
-	    qr/ (?: d?el \s* )? urano /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? urano /smxi ],
 	[ 'Astro::Coord::ECI::VSOP87D::Neptune'	=>
-	    qr/ (?: d?el \s* )? neptuno /smxi ],
+	    qr/ (?: cuando \s* )? (?: d?el \s* )? neptuno /smxi ],
     ];
 }
 
@@ -231,7 +233,9 @@ Yes, the Collins dictionary (on which I leaned heavily) says that the
 astronomical Venus is masculine, even though the mythological Venus is
 feminine.
 
-The words C<'el'>, C<'del'>, C<'de'>, and C<'la'> are optional.
+The words C<'el'>, C<'del'>, C<'de'>, and C<'la'> are optional. So is
+the word C<'cuándo'> (with or without accent) before the entire body
+string; that is, C<'cuándo el sol'>, but not C<'el cuándo sol'>.
 
 =head1 ALMANAC EVENTS
 
@@ -239,9 +243,9 @@ This section describes the events that this class provides. Descriptions
 are in terms of the superclass' documentation, and so will look a bit
 redundant in English.
 
-Incidental words like C<'the'> and C<'of'> are supported where the
-author found them natural and bothered to allow for them, but do (or at
-least should) not affect the parse.
+Incidental words like C<'el'>, C<'la'>, C<'de'>, and C<'del'> are
+supported where the author found them natural and bothered to allow for
+them, but do not (or at least should not) affect the parse.
 
 For the purpose of discussion, events are divided into two classes.
 L<General Events|/General Events> are those that apply to any
@@ -301,7 +305,7 @@ The following specific events should be recognized by any subclass:
  la luna nueva
  el primer cuarto de la luna
  la luna llena
- el ultimo cuarto de la luna
+ el último cuarto de la luna
 
 This implies the Moon. It computes the first occurrence of the specified
 phase on or after the specified date.
@@ -331,15 +335,15 @@ The words C<'el'>, C<'la'>, C<'de'>, and C<'del'> are optional.
 
 =item twilight
 
- a el crepusculo de la manana
- a el crepusculo de la tarde
+ a el crepúsculo de la mañana
+ a el crepúsculo de la tarde
 
 This implies the Sun, and specifies the time the center of the Sun
-passes above (C<'manana'>) or below (C<'tarde'>) the twilight setting of
+passes above (C<'mañana'>) or below (C<'tarde'>) the twilight setting of
 the C<location> object. This defaults to civil twilight (in the U.S. at
 least), or 6 degrees below the horizon.
 
-One of the words C<'civil'>, C<'nautico'>, C<'maritimo'>, or
+One of the words C<'civil'>, C<'náutico'>, C<'marítimo'>, or
 C<'astronomico'> can optionally be inserted after C<'crepusculo'>,
 specifying that the Sun be 6, 12, 12, or 18 degrees below the horizon,
 respectively.
