@@ -21,9 +21,7 @@ sub __body_data {
 	[ 'Astro::Coord::ECI::Sun'	=>
 	    qr/ (?: (?: when | at ) \s* )? (?: the \s* )? sun /smxi,
 	    qr/ (?: at \s* )? (?: the \s* )? (?:
-		(?<detail> begin ) (?: ning )? (?: \s* of )? \s*
-		    (?<specific> twilight ) |
-		(?<detail> end ) (?: ing )? (?: \s* of )? \s*
+		(?<detail> beginn? | end ) (?: ing )? (?: \s* of )? \s*
 		    (?<qual> astronomical | civil | nautical )? \s*
 		    (?<specific> twilight ) |
 		(?<qual> astronomical | civil | nautical )? \s*
@@ -65,6 +63,7 @@ sub __body_data {
 		],
 		twilight	=> [ twilight => {
 			begin	=> 1,
+			beginn	=> 1,
 			end	=> 0,
 			evening	=> 0,
 			morning	=> 1,
@@ -124,10 +123,10 @@ sub __general_event_re {
     return qr/
 	(?: the \s* )? (?<general> culminat ) (?: es? | ion ) (?: \s* of )? |
 	(?: is \s* )? (?: the \s* )? (?<general> highest ) |
-	(?<general> rise ) s? |
+	(?<general> rise | set ) s? |
 	(?: the \s* )? (?<general> rising ) (?: \s* of )? |
-	(?<general> set ) s? |
-	(?: the \s* )? (?<general> setting ) (?: \s* of )?
+	(?: the \s* )? (?<general> setting ) (?: \s* of )? |
+	(?: is \s* )? (?<general> up | down )
     /smxi;
 }
 
@@ -141,11 +140,13 @@ sub __general_event_interp {
     return [
 	{
 	    culminat	=> $highest,
+	    down	=> $set,
 	    highest	=> $highest,
 	    rise	=> $rise,
 	    rising	=> $rise,
 	    set		=> $set,
 	    setting	=> $set,
+	    up		=> $rise,
 	},
     ];
 }
@@ -232,8 +233,9 @@ module recognizes
  rise
  rises
  the rising of
+ is up
 
-The words C<'the'> and C<'of'> are optional. So is the word
+The words C<'the'>, C<'of'>, and C<'is'> are optional. So is the word
 C<'at'> before the name of the event.
 
 =item Set
@@ -245,8 +247,9 @@ module recognizes
  set
  sets
  the setting of
+ is down
 
-The words C<'the'> and C<'of'> are optional. So is the word
+The words C<'the'>, C<'of'>, and C<'is'> are optional. So is the word
 C<'at'> before the name of the event.
 
 =back
