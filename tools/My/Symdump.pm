@@ -16,7 +16,7 @@ sub dmd_public_interface {
 
     # The following have the form of public methods but are not actually
     # part of the Date::Manip::Date public interface.
-    delete $dmd->{$_} for qw{ dclone };
+    delete $dmd->{$_} for qw{ carp confess croak dclone };
     return wantarray ? sort keys %{ $dmd } : $dmd;
 }
 
