@@ -23,6 +23,5 @@ CVS/
 ^t/date_spanish.t$
 ^tools/
 ^TODO$
-^\.travis\.yml$
 ^xt/author/optionals/
 ^Date-ManipX-Almanac
