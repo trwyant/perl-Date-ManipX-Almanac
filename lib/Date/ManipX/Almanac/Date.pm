@@ -192,6 +192,7 @@ sub _config_almanac_config_file {
 	return 1;
     };
     my $config_file_processed;
+    local $_ = undef;	# while (<>) ... does not localize $_.
     while ( <$fh> ) {
 	m/ \S /smx
 	    or next;
