@@ -1,4 +1,4 @@
-0.002_01	2022-09-23	T. R. Wyant
+0.003		2022-09-30	T. R. Wyant
     Localize $_ before while (<>) reading config file in
     Date::ManipX::Almanac::Date.
 
