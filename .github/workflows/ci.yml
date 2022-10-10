@@ -32,16 +32,12 @@ jobs:
         # OS environments under which the job runs.
         runner: [ubuntu-latest, macos-latest, windows-latest]
         # Version of Perl to run.
-        perl: [ '5' ]
+        perl: [ '5.10', '5' ]
 
-        # Add minimum version(s) of Perl to run.
-        # We would like to do this as "perl: [ '5.10', '5' ]", but Perl
-        # 5.10 is not available under Windows. So instead we do:
-        include:
-          - runner: [ ubuntu-latest, macos-latest ]
-            perl: '5.10'
+        # Exclude Perl 5.10 under Windows because it is not available.
+        exclude:
           - runner: windows-latest
-            perl: '5.14'
+            perl: '5.10'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
