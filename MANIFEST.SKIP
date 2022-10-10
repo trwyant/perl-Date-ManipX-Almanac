@@ -7,6 +7,7 @@
 CVS/
 ^foo
 ^.git/
+^.github/
 ^.gitignore$
 ^html/
 ^lib/Date/ManipX/Almanac/Lang/spanish.pm$
