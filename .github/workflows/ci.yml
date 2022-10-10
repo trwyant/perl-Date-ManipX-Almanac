@@ -38,9 +38,9 @@ jobs:
         # We would like to do this as "perl: [ '5.10', '5' ]", but Perl
         # 5.10 is not available under Windows. So instead we do:
         include:
-          - os: [ ubuntu-latest, macos-latest ]
+          - runner: [ ubuntu-latest, macos-latest ]
             perl: '5.10'
-          - os: windows-latest
+          - runner: windows-latest
             perl: '5.14'
 
     # Define where the job runs.
