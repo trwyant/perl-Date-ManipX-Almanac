@@ -58,7 +58,7 @@ L<Date::Manip::Date|Date::Manip::Date>. The script then exits.
 =head1 DETAILS
 
 This Perl script simply prints the names of the methods in the
-L<Data::Manip::Date|Date::Manip::Date> public interface, one per line.
+L<Date::Manip::Date|Date::Manip::Date> public interface, one per line.
 It is really just a wrapper for
 C<< My::Symdump->dmd_public_interface() >>.
 
