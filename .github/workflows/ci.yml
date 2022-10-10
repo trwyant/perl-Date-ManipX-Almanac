@@ -33,9 +33,14 @@ jobs:
         cpanm -v
         cpanm --installdeps .
 
-    - name: Run tests
+    - name: Run ExtUtils::MakeMaker tests
       run: |
         perl Makefile.PL
         make
         make test
 
+    - name: Run Module::Build tests
+      run: |
+        perl Build.PL
+        ./Build
+        ./Build test
