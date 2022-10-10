@@ -31,12 +31,13 @@ jobs:
 
         # OS environments under which the job runs.
         runner: [ubuntu-latest, macos-latest, windows-latest]
+        # Version of Perl to run.
+        perl: [ '5' ]
 
-        # Version(s) of Perl to run.
+        # Add minimum version(s) of Perl to run.
         # We would like to do this as "perl: [ '5.10', '5' ]", but Perl
         # 5.10 is not available under Windows. So instead we do:
         include:
-          - perl: '5'
           - os: [ ubuntu-latest, macos-latest ]
             perl: '5.10'
           - os: windows-latest
