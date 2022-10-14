@@ -34,8 +34,8 @@ jobs:
         # Version of Perl to run. This specifies the most-recent Perl 5.
         perl: [ '5' ]
 
-	# Add minimum Perl versions, which differ among operating
-	# systems
+        # Add minimum Perl versions, which differ among operating
+        # systems
         include:
           - runner: ubuntu-latest
             perl: '5.10.0'
