@@ -31,13 +31,18 @@ jobs:
 
         # OS environments under which the job runs.
         runner: [ubuntu-latest, macos-latest, windows-latest]
-        # Version of Perl to run.
-        perl: [ '5.10', '5' ]
+        # Version of Perl to run. This specifies the most-recent Perl 5.
+        perl: [ '5' ]
 
-        # Exclude Perl 5.10 under Windows because it is not available.
-        exclude:
+	# Add minimum Perl versions, which differ among operating
+	# systems
+        include:
+          - runner: ubuntu-latest
+            perl: '5.10.0'
+          - runner: macos-latest
+            perl: '5.10.0'
           - runner: windows-latest
-            perl: '5.10'
+            perl: '5.26.0'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -50,7 +55,7 @@ jobs:
     steps:
 
       # Specify the action performed by this step.
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up perl
       # Specify the action performed by this step. In this case it is a
@@ -90,3 +95,9 @@ jobs:
         perl Build.PL
         ./Build
         ./Build test
+
+    # The following technique from Gabor Szabo. Thanks:
+    # https://perlmaven.com/install-developer-dependencies-first-test-css
+    - name: Show cpanm errors under macOS or Ubuntu
+      if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
+      run: cat $HOME/.cpanm/work/*/build.log
