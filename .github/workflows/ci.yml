@@ -78,8 +78,11 @@ jobs:
 
     - name: Install Modules
       # Run commands to install the module's declared dependencies.
+      # The extra installs are dependencies missed by some Perls.
       run: |
         cpanm -v
+        cpanm Test2::V0 Test2::Plugin::BailOnFail Test2::Toole::LoadModule
+        cpanm Astro::Coord::ECI Date::Manip
         cpanm --installdeps .
 
     - name: Run ExtUtils::MakeMaker tests
