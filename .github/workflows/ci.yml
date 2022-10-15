@@ -81,7 +81,7 @@ jobs:
       # The extra installs are dependencies missed by some Perls.
       run: |
         cpanm -v
-        cpanm Test2::V0 Test2::Plugin::BailOnFail Test2::Toole::LoadModule
+        cpanm Test2::V0 Test2::Plugin::BailOnFail Test2::Tools::LoadModule
         cpanm Astro::Coord::ECI Date::Manip
         cpanm --installdeps .
 
