@@ -107,7 +107,7 @@ jobs:
       if: failure() && startsWith( matrix.runner, 'windows-' )
       run: |
         echo $(get-location)
-        dir
+        Get-ChildItem
         $dirs = Get-ChildItem "$env:USERPROFILE\.cpanm\work\"
         foreach ( $d in $dirs ) {
             $file = $d.FullName + "\build.log"
