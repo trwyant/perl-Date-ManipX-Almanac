@@ -43,7 +43,7 @@ jobs:
             perl: '5.10.0'
           - runner: windows-latest
             # 5.26.0 is the earliest known to work.
-            perl: '5.20.0'
+            perl: '5.26.0'
 
     # Define where the job runs.
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -103,10 +103,11 @@ jobs:
       if: failure() && ( startsWith( matrix.runner, 'ubuntu-' ) || startsWith( matrix.runner, 'macos-' ) )
       run: cat $HOME/.cpanm/work/*/build.log
 
+    # This doesn't work but per my understanding it ought to.
     - name: Show cpanm errors under Windows
       if: failure() && startsWith( matrix.runner, 'windows-' )
       run: |
-        $dirs = Get-ChildItem ".cpanm\work\"
+        $dirs = Get-ChildItem "$env:USERPROFILE\.cpanm\work\"
         foreach ( $d in $dirs ) {
             $file = $d.FullName + "\build.log"
             echo ""
