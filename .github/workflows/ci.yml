@@ -106,6 +106,7 @@ jobs:
     - name: Show cpanm errors under Windows
       if: failure() && startsWith( matrix.runner, 'windows-' )
       run: |
+        echo $(get-location)
         $dirs = Get-ChildItem "$env:USERPROFILE\.cpanm\work\"
         foreach ( $d in $dirs ) {
             $file = $d.FullName + "\build.log"
