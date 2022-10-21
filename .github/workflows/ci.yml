@@ -85,6 +85,7 @@ jobs:
 
     - name: Display cpanm home
       run: |
+        cpanm File::HomeDir
         perl tools/cpanm_home --verbose
 
     - name: Run ExtUtils::MakeMaker tests

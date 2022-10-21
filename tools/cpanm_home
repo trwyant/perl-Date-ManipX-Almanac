@@ -23,8 +23,6 @@ my %opt = (
 use constant WIN32 => $^O eq 'MSWin32';
 ## VERBATIM END
 
-*determine_home = \&App::cpanminus::script::determine_home;
-
 GetOptions( \%opt,
     qw{ cat|type=s n! verbose! },
     help => sub { pod2usage( { -verbose => 2 } ) },
