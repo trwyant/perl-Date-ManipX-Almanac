@@ -82,6 +82,7 @@ jobs:
       run: |
         cpanm -v
         cpanm --with-configure --notest --installdeps .
+        perl tools/cpanm_home --verbose
 
     - name: Run ExtUtils::MakeMaker tests
       # Run the ExtUtils::MakeMaker toolchain
@@ -104,6 +105,25 @@ jobs:
       run: cat $HOME/.cpanm/work/*/build.log
 
     # This doesn't work but per my understanding it ought to.
+    # My read of App::cpanminus says that the home directory is determined
+    # like this:
+    # use constant WIN32 => $^O eq 'MSWin32';
+    # sub determine_home {
+    #   my $class = shift;
+    #   my $homedir = $ENV{HOME} || eval {
+    #     require File::HomeDir;
+    #     File::HomeDir->my_home
+    #   } || join ( '', @ENV{ qw( HOMEDRIVE HOMEPATH ) } );
+    #   if ( WIN32 ) {
+    #     require Win32;
+    #     $homedir=Win32::GetShortPathName( $homedir )
+    #   }
+    #   return "$homedir/.cpanm"
+    # }
+    # It may be that if I do something like
+    # $cpanm_home = perl -E '...'
+    # $dirs = Get-ChileItem "$cpanm_home\work\"
+    # I can get it done.
     - name: Show cpanm errors under Windows
       if: failure() && startsWith( matrix.runner, 'windows-' )
       run: |
