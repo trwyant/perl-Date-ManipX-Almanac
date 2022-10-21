@@ -82,6 +82,9 @@ jobs:
       run: |
         cpanm -v
         cpanm --with-configure --notest --installdeps .
+
+    - name: Display cpanm home
+      run: |
         perl tools/cpanm_home --verbose
 
     - name: Run ExtUtils::MakeMaker tests
