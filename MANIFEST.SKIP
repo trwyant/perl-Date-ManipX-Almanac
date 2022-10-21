@@ -25,4 +25,5 @@ CVS/
 ^tools/
 ^TODO$
 ^xt/author/optionals/
+^xt/author/verbatim.t$
 ^Date-ManipX-Almanac
