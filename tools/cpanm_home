@@ -81,36 +81,19 @@ if ( $opt{cat} ) {
 }
 
 ## VERBATIM BEGIN App::cpanminus::fatscript
-sub check_upgrade {
-    my $self = shift;
-    my $install_base = $ENV{PERL_LOCAL_LIB_ROOT} ? $self->local_lib_target($ENV{PERL_LOCAL_LIB_ROOT}) : $Config{installsitebin};
-    if ($0 eq '-') {
-        # run from curl, that's fine
-        return;
-    } elsif ($0 !~ /^$install_base/) {
-        if ($0 =~ m!perlbrew/bin!) {
-            die <<DIE;
-It appears your cpanm executable was installed via `perlbrew install-cpanm`.
-cpanm --self-upgrade won't upgrade the version of cpanm you're running.
+sub determine_home {
+    my $class = shift;
 
-Run the following command to get it upgraded.
+    my $homedir = $ENV{HOME}
+      || eval { require File::HomeDir; File::HomeDir->my_home }
+      || join('', @ENV{qw(HOMEDRIVE HOMEPATH)}); # Win32
 
-  perlbrew install-cpanm
-
-DIE
-        } else {
-            die <<DIE;
-You are running cpanm from the path where your current perl won't install executables to.
-Because of that, cpanm --self-upgrade won't upgrade the version of cpanm you're running.
-
-  cpanm path   : $0
-  Install path : $Config{installsitebin}
-
-It means you either installed cpanm globally with system perl, or use distro packages such
-as rpm or apt-get, and you have to use them again to upgrade cpanm.
-DIE
-        }
+    if (WIN32) {
+        require Win32; # no fatpack
+        $homedir = Win32::GetShortPathName($homedir);
     }
+
+    return "$homedir/.cpanm";
 }
 ## VERBATIM END
 
