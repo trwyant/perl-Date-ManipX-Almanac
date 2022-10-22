@@ -87,6 +87,7 @@ jobs:
       run: |
         cpanm File::HomeDir
         perl tools/cpanm_home --verbose
+        Get-ChildItem "$env:USERPROFILE"
 
     - name: Run ExtUtils::MakeMaker tests
       # Run the ExtUtils::MakeMaker toolchain
