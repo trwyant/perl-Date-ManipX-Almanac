@@ -17,7 +17,7 @@ my %opt = (
 
 ## VERBATIM EXPECT 2
 
-## VERBATIM CONFIGURE trim on
+## VERBATIM CONFIGURE fatpack on App::cpanminus::fatscript
 
 ## VERBATIM BEGIN App::cpanminus::fatscript
 use constant WIN32 => $^O eq 'MSWin32';
@@ -29,7 +29,7 @@ GetOptions( \%opt,
 ) or pod2usage( { -verbose => 0 } );
 
 if ( $opt{cat} ) {
-    defined( my $cpanm_home = determine_home() )
+    defined( my $cpanm_home = get_home() )
 	or die "Unable to determine cpanm home";
     require File::Glob;
     foreach my $path ( File::Glob::bsd_glob( "$cpanm_home/$opt{cat}" )) {
@@ -46,6 +46,11 @@ if ( $opt{cat} ) {
 
     say '$HOME is ', def( $ENV{HOME} );
 
+    say '$USERPROFILE is ', def( $ENV{USERPROFILE} );
+
+    say '"$ENV{HOMEDRIVE}$ENV{HOMEPATH}" is ',
+	def( @ENV{ qw/ HOMEDRIVE HOMEPATH / } );
+
     {
 	local $@ = undef;
 	eval {
@@ -56,26 +61,30 @@ if ( $opt{cat} ) {
 	} or say 'File::HomeDir not available';
     }
 
-    say '"$ENV{HOMEDRIVE}$ENV{HOMEPATH}" is ',
-	def( @ENV{ qw/ HOMEDRIVE HOMEPATH / } );
+    check_dir( 'determine_home()', determine_home() );
 
-    my $cpanm_home = determine_home();
-    say 'determine_home() is ', def( $cpanm_home );
+    say '$PERL_CPANM_HOME is ', def( $ENV{PERL_CPANM_HOME} );
 
-    if ( defined $cpanm_home ) {
-	if ( -d $cpanm_home ) {
-	    say "$cpanm_home is a directory";
-	} elsif ( -e _ ) {
-	    say "$cpanm_home is not a directory";
-	} else {
-	    say "$cpanm_home does not exist";
-	}
-    }
+    check_dir( 'get_home()', get_home() );
 
 } elsif ( $opt{n} ) {
-    print determine_home();
+    print get_home();
 } else {
-    say determine_home();
+    say get_home();
+}
+
+sub check_dir {
+    my ( $name, $dir ) = @_;
+    if ( ! defined $dir ) {
+	say "$name is undef";
+    } elsif ( -d $dir ) {
+	say "$name is '$dir', which is a directory";
+    } elsif ( -e _ ) {
+	say "$name is '$dir', which is not a directory";
+    } else {
+	say "$name is '$dir', which does not exist";
+    }
+    return;
 }
 
 ## VERBATIM BEGIN App::cpanminus::fatscript
@@ -103,6 +112,10 @@ sub def {
     }
     local $" = '';
     return "'@arg'";
+}
+
+sub get_home {
+    return $ENV{PERL_CPANM_HOME} || determine_home();
 }
 
 __END__

@@ -15,6 +15,7 @@ BEGIN {
     local $@ = undef;
     eval {
 	require Test::File::Verbatim;
+	Test::File::Verbatim->VERSION( '0.000_006' );	# fatpack
 	Test::File::Verbatim->import();
 	1;
     } or plan skip_all => 'Test::File::Verbaim not available';
