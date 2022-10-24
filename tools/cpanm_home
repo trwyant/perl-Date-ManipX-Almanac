@@ -55,6 +55,7 @@ if ( $opt{cat} ) {
 	local $@ = undef;
 	eval {
 	    require File::HomeDir;
+	    say 'Using File::HomeDir version ', File::HomeDir->VERSION();
 	    my $my_home = File::HomeDir->my_home();
 	    say 'File::HomeDir->my_home() is ', def( $my_home );
 	    1;
