@@ -82,7 +82,7 @@ sub want_modules {
     if ( $perl_ver >= PERL_5_12 ) {
         return;
     } elsif ( $perl_ver >= PERL_5_10 ) {
-        return 'POD::Man';
+        return 'Pod::Man';
     } else {
         return qw{
             SMUELLER/ExtUtils-ParseXS-3.30.tar.gz
