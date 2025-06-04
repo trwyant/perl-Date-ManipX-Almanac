@@ -17,6 +17,7 @@ MANIFEST
 META.json
 META.yml
 README
+SECURITY
 t/basic.t
 t/data/white-house.cfg
 t/data/white-house-with-star.cfg
