@@ -102,7 +102,7 @@ jobs:
 
     - name: Install module dependencies
       run: |
-        cpanm Module::Build
+        cpanm --notest Module::Build
         cpanm --with-configure --notest --installdeps .
 
     - name: Run ExtUtils::MakeMaker tests
