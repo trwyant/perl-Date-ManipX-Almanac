@@ -55,8 +55,7 @@ L<Date::ManipX::Almanac::Date|Date::ManipX::Almanac::Date>
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Date-ManipX-Almanac>,
-L<https://github.com/trwyant/perl-Date-ManipX-Almanac/issues/>, or in
+L<https://github.com/trwyant/perl-Date-ManipX-Almanac/issues> or in
 electronic mail to the author.
 
 =head1 AUTHOR

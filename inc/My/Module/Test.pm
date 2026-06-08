@@ -48,7 +48,6 @@ sub parsed_value {
     return $obj->err() . " '$string'";
 }
 
-
 1;
 
 __END__
@@ -121,8 +120,7 @@ L<Date::Manip::Almanac::Date|Date::Manip::Almanac::Date>
 =head1 SUPPORT
 
 Support is by the author. Please file bug reports at
-L<https://rt.cpan.org/Public/Dist/Display.html?Name=Date-ManipX-Almanac>,
-L<https://github.com/trwyant/perl-Date-ManipX-Almanac/issues/>, or in
+L<https://github.com/trwyant/perl-Date-ManipX-Almanac/issues> or in
 electronic mail to the author.
 
 =head1 AUTHOR
