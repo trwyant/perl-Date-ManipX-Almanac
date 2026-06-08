@@ -10,8 +10,8 @@ lib/Date/ManipX/Almanac.pm
 lib/Date/ManipX/Almanac/Date.pm
 lib/Date/ManipX/Almanac/Lang.pm
 lib/Date/ManipX/Almanac/Lang/english.pm
-LICENSES/Artistic
-LICENSES/Copying
+LICENSE-Artistic
+LICENSE-GPL
 Makefile.PL
 MANIFEST
 META.json
