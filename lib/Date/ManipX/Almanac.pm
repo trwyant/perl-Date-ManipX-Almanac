@@ -15,7 +15,7 @@ our @EXPORT = @Date::Manip::EXPORT;
 
 # use Carp;
 
-our $VERSION = '0.003';
+our $VERSION = '0.003_01';
 
 1;
 

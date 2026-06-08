@@ -9,7 +9,7 @@ use parent qw{ Date::ManipX::Almanac::Lang };
 
 use Carp;
 
-our $VERSION = '0.003';
+our $VERSION = '0.003_01';
 
 our $LangName = 'English';
 
