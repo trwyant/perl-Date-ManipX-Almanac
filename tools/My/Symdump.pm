@@ -9,7 +9,7 @@ use warnings;
 use Devel::Symdump;
 use Module::Load ();
 
-our $VERSION = '0.003_01';
+our $VERSION = '0.004';
 
 sub dmd_public_interface {
     my $dmd = find_public_methods( 'Date::Manip::Date' );
