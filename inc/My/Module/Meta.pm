@@ -149,7 +149,7 @@ sub provides {
     return ( provides => $provides );
 }
 
-sub release_status { 'stable' }
+sub release_status { 'testing' }
 
 sub requires {
     my ( $self, @extra ) = @_;
